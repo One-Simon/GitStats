@@ -2,9 +2,8 @@
 
 Generate a clean GitHub language statistics SVG for your profile README.
 
-GitStats is a small GitHub Action that reads the repositories your token can access, asks GitHub for each repository's language breakdown, aggregates the results, and writes a static SVG you can embed in your README.
-
-It is designed for people who want a simple language card without a hosted service, without npm installs, and with optional private repository support.
+I did not like the styling - nor the functionality of existing Graphics. 
+Enjoy.
 
 ## What It Shows
 
