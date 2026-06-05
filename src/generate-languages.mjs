@@ -462,10 +462,16 @@ async function collectLanguageChangeTotals(options, headers, repos) {
 
   for (const repo of repos) {
     for (let page = 1; ; page += 1) {
-      const commits = await github(
-        `/repos/${repo.owner.login}/${repo.name}/commits?per_page=100&page=${page}&since=${encodeURIComponent(since)}`,
-        headers,
-      );
+      let commits;
+      try {
+        commits = await github(
+          `/repos/${repo.owner.login}/${repo.name}/commits?per_page=100&page=${page}&since=${encodeURIComponent(since)}`,
+          headers,
+        );
+      } catch (error) {
+        if (String(error.message).startsWith("409 Conflict:")) break;
+        throw error;
+      }
       if (!commits.length) break;
 
       for (const commit of commits) {
