@@ -8,7 +8,7 @@ branding:
 
 inputs:
   token:
-    description: GitHub token used to read repositories and language data. Use a PAT with repo and read:user to include private repositories.
+    description: GitHub token used to read repositories and language data. Classic PATs can use repo/read:user; fine-grained PATs need Metadata read access to selected repositories.
     required: true
   username:
     description: GitHub username to generate stats for. Defaults to the repository owner.
