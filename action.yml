@@ -8,7 +8,7 @@ branding:
 
 inputs:
   token:
-    description: GitHub token used to read repositories and language data. Classic PATs can use repo/read:user; fine-grained PATs need Metadata read access to selected repositories.
+    description: GitHub token used to read repositories, language data, and commit data for recent renders.
     required: true
   username:
     description: GitHub username to generate stats for. Defaults to the repository owner.
@@ -23,7 +23,7 @@ inputs:
     required: false
     default: "10"
   hide-languages:
-    description: Comma-separated list of languages to hide.
+    description: Comma-separated list of languages to exclude after loading all detected languages.
     required: false
     default: HTML,CSS
   include-forks:
@@ -49,15 +49,35 @@ inputs:
   title:
     description: SVG title.
     required: false
-    default: Most Used Languages
+    default: ""
   subtitle:
     description: SVG subtitle.
     required: false
-    default: public + private
+    default: ""
+  style:
+    description: SVG rendering style. Use normal for the full card or compact for the labeled bar-only layout.
+    required: false
+    default: normal
+  timeframe:
+    description: Use all-time for current language byte totals, or a positive number of weeks for recent commit change totals.
+    required: false
+    default: all-time
+  show-values:
+    description: Show byte or change totals in the normal renderer. Compact always shows percentages only.
+    required: false
+    default: "true"
   user-agent:
     description: User-Agent header for GitHub API requests.
     required: false
     default: GitStats-language-card
+  readme-config:
+    description: README path containing an optional GitStats config block. Set to an empty string to disable README-based display configuration.
+    required: false
+    default: README.md
+  config-name:
+    description: Optional named README config block to use, for example most-used or recent.
+    required: false
+    default: ""
 
 outputs:
   output:
@@ -82,5 +102,10 @@ runs:
         GITSTATS_VISIBILITY: ${{ inputs.visibility }}
         GITSTATS_TITLE: ${{ inputs.title }}
         GITSTATS_SUBTITLE: ${{ inputs.subtitle }}
+        GITSTATS_STYLE: ${{ inputs.style }}
+        GITSTATS_TIMEFRAME: ${{ inputs.timeframe }}
+        GITSTATS_SHOW_VALUES: ${{ inputs.show-values }}
         GITSTATS_USER_AGENT: ${{ inputs.user-agent }}
+        GITSTATS_README_CONFIG: ${{ inputs.readme-config }}
+        GITSTATS_CONFIG_NAME: ${{ inputs.config-name }}
       run: node "$GITHUB_ACTION_PATH/src/generate-languages.mjs"

@@ -1,0 +1,46 @@
+<svg width="520" height="150" viewBox="0 0 520 150" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Recent Languages</title>
+  <desc id="desc">Recent language activity by GitHub commit file change counts across repositories available to the token.</desc>
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .title { fill: #24292f; font-size: 18px; font-weight: 600; }
+    .meta { fill: #57606a; font-size: 12px; }
+    .name { fill: #111827; font-size: 12px; font-weight: 800; }
+    .value { fill: #1f2937; font-size: 11px; font-weight: 800; }
+    .other-name { fill: #111827; font-size: 11px; font-weight: 800; }
+    .other-value { fill: #1f2937; font-size: 10px; font-weight: 800; }
+    @media (prefers-color-scheme: dark) {
+      .title, .name, .other-name { fill: #f0f6fc; }
+      .meta, .value, .other-value { fill: #c9d1d9; }
+    }
+  </style>
+  <text x="0" y="30" class="title">Recent Languages</text>
+  <text x="520" y="30" text-anchor="end" class="meta">last 8 weeks</text>
+  <g>
+    <path d="M 11 54 H 236.01328903654485 L 236.01328903654485 54 V 76 L 236.01328903654485 76 H 11 Q 0 76 0 65 V 65 Q 0 54 11 54 Z" fill="#3178c6" />
+    <path d="M 236.01328903654485 54 H 357.2093023255814 L 357.2093023255814 54 V 76 L 357.2093023255814 76 H 236.01328903654485 L 236.01328903654485 76 V 54 L 236.01328903654485 54 Z" fill="#3572A5" />
+    <path d="M 357.2093023255814 54 H 424.1860465116279 L 424.1860465116279 54 V 76 L 424.1860465116279 76 H 357.2093023255814 L 357.2093023255814 76 V 54 L 357.2093023255814 54 Z" fill="#dea584" />
+    <path d="M 424.1860465116279 54 H 465.6478405315615 L 465.6478405315615 54 V 76 L 465.6478405315615 76 H 424.1860465116279 L 424.1860465116279 76 V 54 L 424.1860465116279 54 Z" fill="#00ADD8" />
+    <path d="M 465.6478405315615 54 H 472.8239202657807 Q 480 54 480 61.17607973421927 V 68.82392026578073 Q 480 76 472.8239202657807 76 H 465.6478405315615 L 465.6478405315615 76 V 54 L 465.6478405315615 54 Z" fill="#8b949e" />
+  </g>
+  <g transform="translate(518 57)">
+    <text x="0" y="0" text-anchor="end" class="other-name">Other</text>
+    <text x="0" y="18" text-anchor="end" class="other-value">3.0%</text>
+  </g>
+  <g transform="translate(118.01 100)">
+      <text x="0" y="0" text-anchor="middle" class="name">TypeScript</text>
+      <text x="0" y="18" text-anchor="middle" class="value">49.2%</text>
+    </g>
+    <g transform="translate(296.61 100)">
+      <text x="0" y="0" text-anchor="middle" class="name">Python</text>
+      <text x="0" y="18" text-anchor="middle" class="value">25.2%</text>
+    </g>
+    <g transform="translate(390.70 100)">
+      <text x="0" y="0" text-anchor="middle" class="name">Rust</text>
+      <text x="0" y="18" text-anchor="middle" class="value">14.0%</text>
+    </g>
+    <g transform="translate(444.92 100)">
+      <text x="0" y="0" text-anchor="middle" class="name">Go</text>
+      <text x="0" y="18" text-anchor="middle" class="value">8.6%</text>
+    </g>
+</svg>

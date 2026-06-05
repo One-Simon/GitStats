@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GitStats Preview</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="preview-grid" aria-label="Stats previews">
+        <article class="panel">
+          <div class="panel-header">
+            <h2>Most Used Compact</h2>
+            <span class="status">Bytes</span>
+          </div>
+          <div class="svg-frame">
+            <img width="100%" src="/api/render.svg?timeframe=all-time&style=compact" alt="Compact most used languages card generated from all-time byte totals" />
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <h2>Most Used Extended</h2>
+            <span class="status">Bytes</span>
+          </div>
+          <div class="svg-frame">
+            <img width="100%" src="/api/render.svg?timeframe=all-time&style=normal" alt="Extended most used languages card generated from all-time byte totals" />
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <h2>Recent Compact</h2>
+            <span class="status muted">Changes</span>
+          </div>
+          <div class="svg-frame">
+            <img width="100%" src="/api/render.svg?timeframe=4&style=compact" alt="Compact recent languages card generated from four-week change totals" />
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <h2>Recent Extended</h2>
+            <span class="status muted">Changes</span>
+          </div>
+          <div class="svg-frame">
+            <img width="100%" src="/api/render.svg?timeframe=4&style=normal" alt="Extended recent languages card generated from four-week change totals" />
+          </div>
+        </article>
+      </section>
+
+      <section class="workspace" aria-label="Preview context">
+        <article>
+          <dl id="config-data">
+            <div><dt>Title</dt><dd>Loading...</dd></div>
+          </dl>
+        </article>
+
+        <article>
+          <pre id="sample-data">Loading...</pre>
+        </article>
+      </section>
+    </main>
+
+    <script src="/preview.js" type="module"></script>
+  </body>
+</html>
