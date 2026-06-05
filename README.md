@@ -10,6 +10,9 @@ GitStats can show both long-term language composition and recent language activi
 - All variants include internal horizontal padding and a subtle card background that remains distinct from GitHub's page background in light and dark mode.
 - Settings can live in your README through named `gitstats:config` blocks.
 
+> [!IMPORTANT]
+> GitHub may cache README images for a short while after the workflow updates the SVG files. If the raw SVG file is correct but the README still shows the old card, please wait a bit and refresh later.
+
 ## Quick Setup
 
 This default template generates two cards:
@@ -228,6 +231,20 @@ For fine-grained Personal Access Tokens:
 5. For a numbered timeframe, reads commits since that many weeks ago and aggregates changed files by language.
 6. Applies `hide-languages`, dynamic grouping, and `max-languages`.
 7. Renders the selected SVG style.
+
+## Troubleshooting
+
+### The workflow succeeded, but the README still shows the old card
+
+GitHub caches images rendered inside READMEs. Check the SVG file directly in the repository, for example `profile/languages-most-used.svg`. If that raw file is updated, the workflow worked and the README image cache should catch up after a little while.
+
+### The workflow fails with `API rate limit exceeded`
+
+GitStats reads repository, language, and commit data through the GitHub API. Wait until the rate limit resets, then rerun the workflow from the Actions tab. Recent cards can use more requests than all-time cards because they inspect commits and changed files inside the selected timeframe.
+
+### The card does not use my README config
+
+Make sure the workflow `config-name` matches the name in the README block exactly. For example, `config-name: most-used` must point to `<!-- gitstats:config most-used`. Also confirm the workflow uses `readme-config: README.md` or leaves that input at its default.
 
 ## Notes
 
