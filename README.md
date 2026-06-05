@@ -67,29 +67,13 @@ Then add this to your `README.md`:
 
 ```md
 <!-- gitstats:config most-used
-title: Most Used Languages
-subtitle: all-time
 style: normal
 timeframe: all-time
-show-values: true
-max-languages: 10
-hide-languages: HTML,CSS
-include-forks: false
-include-archived: false
-include-profile-repo: false
 gitstats:config -->
 
 <!-- gitstats:config recent
-title: Recent Languages
-subtitle: last 8 weeks
 style: compact
 timeframe: 8
-show-values: true
-max-languages: 10
-hide-languages: HTML,CSS
-include-forks: false
-include-archived: false
-include-profile-repo: false
 gitstats:config -->
 
 <p align="center">
@@ -104,35 +88,30 @@ Run the workflow once from the Actions tab. After the first successful run, the 
 
 GitStats reads settings from `gitstats:config` blocks in your README. Use `config-name` in the workflow to select which block should drive that action run.
 
+Only set the values you want to change. Omitted settings use the defaults below.
+
 ```md
 <!-- gitstats:config example-name
-title: Most Used Languages
-subtitle: all-time
 style: normal
 timeframe: all-time
-show-values: true
-max-languages: 10
-hide-languages: HTML,CSS
-include-forks: false
-include-archived: false
-include-profile-repo: false
 gitstats:config -->
 ```
 
-| Setting | Values | Description |
+| Setting | Default | Description |
 | --- | --- | --- |
-| `title` | Any text | Card title. |
-| `subtitle` | Any text | Small label in the top-right of the card. |
-| `style` | `normal`, `compact` | `normal` renders the extended card with a list. `compact` renders a thicker labeled bar. |
-| `timeframe` | `all-time`, or a number of weeks | `all-time` uses GitHub language bytes. A number, such as `8`, uses recent commit changes. |
-| `show-values` | `true`, `false` | Shows byte or change totals in the normal renderer. Compact always shows percentages only. |
-| `max-languages` | Positive number | Maximum number of languages to display before truncating. |
-| `hide-languages` | Comma-separated languages | Excludes languages after loading all detected languages. Defaults to `HTML,CSS`. |
-| `include-forks` | `true`, `false` | Includes forked repositories. |
-| `include-archived` | `true`, `false` | Includes archived repositories. |
-| `include-profile-repo` | `true`, `false` | Includes the `username/username` profile repository. |
-| `affiliation` | GitHub repo affiliation query | Defaults to `owner`. Use `owner,collaborator,organization_member` for broader access. |
-| `visibility` | `all`, `public`, `private` | Repository visibility passed to GitHub. |
+| `title` | Automatic | Optional card title override. Defaults to `Most Used Languages` for `all-time`, or `Recent Languages` for numbered timeframes. |
+| `style` | `normal` | `normal` renders the extended card with a list. `compact` renders a thicker labeled bar. |
+| `timeframe` | `all-time` | `all-time` uses GitHub language bytes. A number, such as `8`, uses recent commit changes from that many weeks. |
+| `show-values` | `true` | Shows byte or change totals in the normal renderer. Compact always shows percentages only. |
+| `max-languages` | `10` | Maximum number of languages to display before truncating. |
+| `hide-languages` | `HTML,CSS` | Comma-separated languages to exclude after loading all detected languages. |
+| `include-forks` | `false` | Includes forked repositories. |
+| `include-archived` | `false` | Includes archived repositories. |
+| `include-profile-repo` | `false` | Includes the `username/username` profile repository. |
+| `affiliation` | `owner` | Repository affiliation passed to GitHub. Use `owner,collaborator,organization_member` for broader access. |
+| `visibility` | `all` | Repository visibility passed to GitHub. |
+
+The subtitle is always generated from `timeframe`: `all-time` for all-time renders, or `last N weeks` for numbered timeframes.
 
 ## Variants
 
@@ -140,13 +119,8 @@ gitstats:config -->
 
 ```md
 <!-- gitstats:config most-used-extended
-title: Most Used Languages
-subtitle: all-time
 style: normal
 timeframe: all-time
-show-values: true
-max-languages: 10
-hide-languages: HTML,CSS
 gitstats:config -->
 ```
 
@@ -158,13 +132,8 @@ gitstats:config -->
 
 ```md
 <!-- gitstats:config most-used-compact
-title: Most Used Languages
-subtitle: all-time
 style: compact
 timeframe: all-time
-show-values: true
-max-languages: 10
-hide-languages: HTML,CSS
 gitstats:config -->
 ```
 
@@ -176,13 +145,8 @@ gitstats:config -->
 
 ```md
 <!-- gitstats:config recent-extended
-title: Recent Languages
-subtitle: last 8 weeks
 style: normal
 timeframe: 8
-show-values: true
-max-languages: 10
-hide-languages: HTML,CSS
 gitstats:config -->
 ```
 
@@ -194,13 +158,8 @@ gitstats:config -->
 
 ```md
 <!-- gitstats:config recent-compact
-title: Recent Languages
-subtitle: last 8 weeks
 style: compact
 timeframe: 8
-show-values: true
-max-languages: 10
-hide-languages: HTML,CSS
 gitstats:config -->
 ```
 
@@ -227,7 +186,6 @@ README config blocks are recommended for display settings. Workflow inputs are s
 | `affiliation` | `owner` | Repository affiliation passed to GitHub. |
 | `visibility` | `all` | Repository visibility passed to GitHub. |
 | `title` | Automatic | Card title if README config is disabled. |
-| `subtitle` | Automatic | Card subtitle if README config is disabled. |
 | `timeframe` | `all-time` | `all-time` for language bytes, or a number of weeks for recent changes. |
 | `style` | `normal` | Rendering style. |
 | `show-values` | `true` | Show byte or change totals in the normal renderer. |

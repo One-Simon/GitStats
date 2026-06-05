@@ -1,11 +1,11 @@
-<svg width="520" height="150" viewBox="0 0 520 150" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+<svg width="520" height="132" viewBox="0 0 520 132" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
   <title id="title">Recent Languages</title>
   <desc id="desc">Recent language activity by GitHub commit file change counts across repositories available to the token.</desc>
   <style>
     text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
     .card-bg { fill: #f6f8fa; stroke: #d0d7de; }
     .title { fill: #24292f; font-size: 18px; font-weight: 600; }
-    .meta { fill: #57606a; font-size: 12px; }
+    .meta { fill: #57606a; font-size: 12px; font-weight: 600; }
     .name { fill: #111827; font-size: 12px; font-weight: 800; }
     .value { fill: #1f2937; font-size: 11px; font-weight: 800; }
     .other-name { fill: #111827; font-size: 11px; font-weight: 800; }
@@ -16,7 +16,7 @@
       .meta, .value, .other-value { fill: #c9d1d9; }
     }
   </style>
-  <rect x="0.5" y="0.5" width="519" height="149" rx="8" class="card-bg" />
+  <rect x="0.5" y="0.5" width="519" height="131" rx="8" class="card-bg" />
   <text x="18" y="30" class="title">Recent Languages</text>
   <text x="502" y="30" text-anchor="end" class="meta">last 8 weeks</text>
   <g>
@@ -30,19 +30,19 @@
     <text x="0" y="0" text-anchor="end" class="other-name">Other</text>
     <text x="0" y="18" text-anchor="end" class="other-value">3.0%</text>
   </g>
-  <g transform="translate(125.68 100)">
+  <g transform="translate(125.68 98)">
       <text x="0" y="0" text-anchor="middle" class="name">TypeScript</text>
       <text x="0" y="18" text-anchor="middle" class="value">49.2%</text>
     </g>
-    <g transform="translate(288.66 100)">
+    <g transform="translate(288.66 98)">
       <text x="0" y="0" text-anchor="middle" class="name">Python</text>
       <text x="0" y="18" text-anchor="middle" class="value">25.2%</text>
     </g>
-    <g transform="translate(374.51 100)">
+    <g transform="translate(374.51 98)">
       <text x="0" y="0" text-anchor="middle" class="name">Rust</text>
       <text x="0" y="18" text-anchor="middle" class="value">14.0%</text>
     </g>
-    <g transform="translate(423.99 100)">
+    <g transform="translate(423.99 98)">
       <text x="0" y="0" text-anchor="middle" class="name">Go</text>
       <text x="0" y="18" text-anchor="middle" class="value">8.6%</text>
     </g>

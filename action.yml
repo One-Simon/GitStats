@@ -50,10 +50,6 @@ inputs:
     description: SVG title.
     required: false
     default: ""
-  subtitle:
-    description: SVG subtitle.
-    required: false
-    default: ""
   style:
     description: SVG rendering style. Use normal for the full card or compact for the labeled bar-only layout.
     required: false
@@ -101,7 +97,6 @@ runs:
         GITSTATS_AFFILIATION: ${{ inputs.affiliation }}
         GITSTATS_VISIBILITY: ${{ inputs.visibility }}
         GITSTATS_TITLE: ${{ inputs.title }}
-        GITSTATS_SUBTITLE: ${{ inputs.subtitle }}
         GITSTATS_STYLE: ${{ inputs.style }}
         GITSTATS_TIMEFRAME: ${{ inputs.timeframe }}
         GITSTATS_SHOW_VALUES: ${{ inputs.show-values }}

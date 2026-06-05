@@ -73,7 +73,6 @@ function renderOptions(config, timeframe, style, metric) {
     metric,
     showValues: config["show-values"] ?? true,
     title: useConfiguredText ? config.title : undefined,
-    subtitle: useConfiguredText ? config.subtitle : undefined,
   };
 }
 

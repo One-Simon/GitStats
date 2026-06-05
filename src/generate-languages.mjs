@@ -165,7 +165,7 @@ function normalizeRenderOptions(options) {
     metric,
     showValues: options.showValues !== false,
     title: options.title || defaultTitle(timeframe),
-    subtitle: options.subtitle || defaultSubtitle(timeframe),
+    subtitle: defaultSubtitle(timeframe),
   };
 }
 
@@ -205,7 +205,7 @@ function renderNormalSvg(languages, total, options) {
     text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
     .card-bg { fill: #f6f8fa; stroke: #d0d7de; }
     .title { fill: #24292f; font-size: 18px; font-weight: 600; }
-    .meta { fill: #57606a; font-size: 12px; }
+    .meta { fill: #57606a; font-size: 12px; font-weight: 600; }
     .name { fill: #24292f; font-size: 13px; font-weight: 600; }
     .value { fill: #57606a; font-size: 12px; }
     @media (prefers-color-scheme: dark) {
@@ -231,10 +231,10 @@ function renderCompactSvg(languages, total, options) {
   const width = 520;
   const paddingX = 18;
   const contentWidth = width - paddingX * 2;
-  const height = 150;
+  const height = 132;
   const barY = 54;
   const barHeight = 22;
-  const labelY = 100;
+  const labelY = 98;
   const otherLabelWidth = 42;
   const otherGap = 4;
   const compactLanguages = groupCompactLanguages(languages, total, contentWidth, otherLabelWidth + otherGap);
@@ -274,7 +274,7 @@ function renderCompactSvg(languages, total, options) {
     text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
     .card-bg { fill: #f6f8fa; stroke: #d0d7de; }
     .title { fill: #24292f; font-size: 18px; font-weight: 600; }
-    .meta { fill: #57606a; font-size: 12px; }
+    .meta { fill: #57606a; font-size: 12px; font-weight: 600; }
     .name { fill: #111827; font-size: 12px; font-weight: 800; }
     .value { fill: #1f2937; font-size: 11px; font-weight: 800; }
     .other-name { fill: #111827; font-size: 11px; font-weight: 800; }
@@ -546,7 +546,6 @@ export function optionsFromEnv(env = process.env) {
     affiliation: env.GITSTATS_AFFILIATION || "owner",
     visibility: env.GITSTATS_VISIBILITY || "all",
     title: env.GITSTATS_TITLE || "",
-    subtitle: env.GITSTATS_SUBTITLE || "",
     style: (env.GITSTATS_STYLE || "normal").toLowerCase(),
     userAgent: env.GITSTATS_USER_AGENT || "GitStats-language-card",
     readmeConfigPath,
@@ -557,7 +556,6 @@ function mergeConfig(options, readmeConfig) {
   return {
     ...options,
     title: readmeConfig.title ?? options.title,
-    subtitle: readmeConfig.subtitle ?? options.subtitle,
     style: readmeConfig.style ?? options.style,
     maxLanguages: readmeConfig["max-languages"] ?? options.maxLanguages,
     timeframe: readmeConfig.timeframe ?? options.timeframe,

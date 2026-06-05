@@ -5,7 +5,7 @@
     text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
     .card-bg { fill: #f6f8fa; stroke: #d0d7de; }
     .title { fill: #24292f; font-size: 18px; font-weight: 600; }
-    .meta { fill: #57606a; font-size: 12px; }
+    .meta { fill: #57606a; font-size: 12px; font-weight: 600; }
     .name { fill: #24292f; font-size: 13px; font-weight: 600; }
     .value { fill: #57606a; font-size: 12px; }
     @media (prefers-color-scheme: dark) {
