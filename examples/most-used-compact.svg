@@ -3,6 +3,7 @@
   <desc id="desc">Language usage by GitHub language byte counts across repositories available to the token.</desc>
   <style>
     text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .card-bg { fill: #f6f8fa; stroke: #d0d7de; }
     .title { fill: #24292f; font-size: 18px; font-weight: 600; }
     .meta { fill: #57606a; font-size: 12px; }
     .name { fill: #111827; font-size: 12px; font-weight: 800; }
@@ -10,36 +11,38 @@
     .other-name { fill: #111827; font-size: 11px; font-weight: 800; }
     .other-value { fill: #1f2937; font-size: 10px; font-weight: 800; }
     @media (prefers-color-scheme: dark) {
+      .card-bg { fill: #161b22; stroke: #30363d; }
       .title, .name, .other-name { fill: #f0f6fc; }
       .meta, .value, .other-value { fill: #c9d1d9; }
     }
   </style>
-  <text x="0" y="30" class="title">Most Used Languages</text>
-  <text x="520" y="30" text-anchor="end" class="meta">all-time</text>
+  <rect x="0.5" y="0.5" width="519" height="149" rx="8" class="card-bg" />
+  <text x="18" y="30" class="title">Most Used Languages</text>
+  <text x="502" y="30" text-anchor="end" class="meta">all-time</text>
   <g>
-    <path d="M 11 54 H 208.3889357645499 L 208.3889357645499 54 V 76 L 208.3889357645499 76 H 11 Q 0 76 0 65 V 65 Q 0 54 11 54 Z" fill="#3178c6" />
-    <path d="M 208.3889357645499 54 H 347.31487913986314 L 347.31487913986314 54 V 76 L 347.31487913986314 76 H 208.3889357645499 L 208.3889357645499 76 V 54 L 208.3889357645499 54 Z" fill="#f1e05a" />
-    <path d="M 347.31487913986314 54 H 408.09496642807517 L 408.09496642807517 54 V 76 L 408.09496642807517 76 H 347.31487913986314 L 347.31487913986314 76 V 54 L 347.31487913986314 54 Z" fill="#3572A5" />
-    <path d="M 408.09496642807517 54 H 445.40418196067765 L 445.40418196067765 54 V 76 L 445.40418196067765 76 H 408.09496642807517 L 408.09496642807517 76 V 54 L 408.09496642807517 54 Z" fill="#00ADD8" />
-    <path d="M 445.40418196067765 54 H 468.99999999999994 Q 479.99999999999994 54 479.99999999999994 65 V 65 Q 479.99999999999994 76 468.99999999999994 76 H 445.40418196067765 L 445.40418196067765 76 V 54 L 445.40418196067765 54 Z" fill="#8b949e" />
+    <path d="M 29 54 H 208.15490388515178 L 208.15490388515178 54 V 76 L 208.15490388515178 76 H 29 Q 18 76 18 65 V 65 Q 18 54 29 54 Z" fill="#3178c6" />
+    <path d="M 208.15490388515178 54 H 334.9248272151251 L 334.9248272151251 54 V 76 L 334.9248272151251 76 H 208.15490388515178 L 208.15490388515178 76 V 54 L 208.15490388515178 54 Z" fill="#f1e05a" />
+    <path d="M 334.9248272151251 54 H 390.3866568656186 L 390.3866568656186 54 V 76 L 390.3866568656186 76 H 334.9248272151251 L 334.9248272151251 76 V 54 L 334.9248272151251 54 Z" fill="#3572A5" />
+    <path d="M 390.3866568656186 54 H 424.43131603911837 L 424.43131603911837 54 V 76 L 424.43131603911837 76 H 390.3866568656186 L 390.3866568656186 76 V 54 L 390.3866568656186 54 Z" fill="#00ADD8" />
+    <path d="M 424.43131603911837 54 H 445 Q 456 54 456 65 V 65 Q 456 76 445 76 H 424.43131603911837 L 424.43131603911837 76 V 54 L 424.43131603911837 54 Z" fill="#8b949e" />
   </g>
-  <g transform="translate(518 57)">
+  <g transform="translate(502 57)">
     <text x="0" y="0" text-anchor="end" class="other-name">Other</text>
     <text x="0" y="18" text-anchor="end" class="other-value">7.2%</text>
   </g>
-  <g transform="translate(104.19 100)">
+  <g transform="translate(113.08 100)">
       <text x="0" y="0" text-anchor="middle" class="name">TypeScript</text>
       <text x="0" y="18" text-anchor="middle" class="value">43.4%</text>
     </g>
-    <g transform="translate(277.85 100)">
+    <g transform="translate(271.54 100)">
       <text x="0" y="0" text-anchor="middle" class="name">JavaScript</text>
       <text x="0" y="18" text-anchor="middle" class="value">28.9%</text>
     </g>
-    <g transform="translate(377.70 100)">
+    <g transform="translate(362.66 100)">
       <text x="0" y="0" text-anchor="middle" class="name">Python</text>
       <text x="0" y="18" text-anchor="middle" class="value">12.7%</text>
     </g>
-    <g transform="translate(426.75 100)">
+    <g transform="translate(407.41 100)">
       <text x="0" y="0" text-anchor="middle" class="name">Go</text>
       <text x="0" y="18" text-anchor="middle" class="value">7.8%</text>
     </g>

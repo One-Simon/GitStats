@@ -172,27 +172,29 @@ function normalizeRenderOptions(options) {
 function renderNormalSvg(languages, total, options) {
   const valueFormatter = options.valueFormatter || ((pct, value) => formatListValue(pct, value, options));
   const width = 520;
+  const paddingX = 18;
+  const contentWidth = width - paddingX * 2;
   const rowHeight = 28;
   const height = 78 + languages.length * rowHeight;
   const barY = 54;
-  const barWidth = width;
+  const barWidth = contentWidth;
   let offset = 0;
 
   const barSegments = languages.map(({ language, value }) => {
     const segmentWidth = Math.max(0, (value / total) * barWidth);
     const x = offset;
     offset += segmentWidth;
-    return `<rect x="${x.toFixed(2)}" y="${barY}" width="${segmentWidth.toFixed(2)}" height="10" fill="${colorFor(language)}" />`;
+    return `<rect x="${(paddingX + x).toFixed(2)}" y="${barY}" width="${segmentWidth.toFixed(2)}" height="10" fill="${colorFor(language)}" />`;
   }).join("\n    ");
 
   const rows = languages.map(({ language, value }, index) => {
     const y = 92 + index * rowHeight;
     const pct = ((value / total) * 100).toFixed(1);
     const formattedValue = valueFormatter(pct, value);
-    return `<g transform="translate(0 ${y})">
+    return `<g transform="translate(${paddingX} ${y})">
       <circle cx="5" cy="-4" r="5" fill="${colorFor(language)}" />
       <text x="18" y="0" class="name">${escapeXml(language)}</text>
-      <text x="520" y="0" text-anchor="end" class="value">${formattedValue}</text>
+      <text x="${contentWidth}" y="0" text-anchor="end" class="value">${formattedValue}</text>
     </g>`;
   }).join("\n    ");
 
@@ -201,20 +203,23 @@ function renderNormalSvg(languages, total, options) {
   <desc id="desc">${escapeXml(svgDescription(options.metric))}</desc>
   <style>
     text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .card-bg { fill: #f6f8fa; stroke: #d0d7de; }
     .title { fill: #24292f; font-size: 18px; font-weight: 600; }
     .meta { fill: #57606a; font-size: 12px; }
     .name { fill: #24292f; font-size: 13px; font-weight: 600; }
     .value { fill: #57606a; font-size: 12px; }
     @media (prefers-color-scheme: dark) {
+      .card-bg { fill: #161b22; stroke: #30363d; }
       .title, .name { fill: #c9d1d9; }
       .meta, .value { fill: #8b949e; }
     }
   </style>
-  <text x="0" y="30" class="title">${escapeXml(options.title)}</text>
-  <text x="520" y="30" text-anchor="end" class="meta">${escapeXml(options.subtitle)}</text>
-  <clipPath id="bar"><rect x="0" y="54" width="520" height="10" rx="5" /></clipPath>
+  <rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" rx="8" class="card-bg" />
+  <text x="${paddingX}" y="30" class="title">${escapeXml(options.title)}</text>
+  <text x="${width - paddingX}" y="30" text-anchor="end" class="meta">${escapeXml(options.subtitle)}</text>
+  <clipPath id="bar"><rect x="${paddingX}" y="54" width="${contentWidth}" height="10" rx="5" /></clipPath>
   <g clip-path="url(#bar)">
-    <rect x="0" y="54" width="520" height="10" fill="#d0d7de" />
+    <rect x="${paddingX}" y="54" width="${contentWidth}" height="10" fill="#d0d7de" />
     ${barSegments}
   </g>
   ${rows}
@@ -224,20 +229,22 @@ function renderNormalSvg(languages, total, options) {
 
 function renderCompactSvg(languages, total, options) {
   const width = 520;
+  const paddingX = 18;
+  const contentWidth = width - paddingX * 2;
   const height = 150;
   const barY = 54;
   const barHeight = 22;
   const labelY = 100;
-  const otherLabelWidth = 36;
+  const otherLabelWidth = 42;
   const otherGap = 4;
-  const compactLanguages = groupCompactLanguages(languages, total, width, otherLabelWidth + otherGap);
+  const compactLanguages = groupCompactLanguages(languages, total, contentWidth, otherLabelWidth + otherGap);
   const other = compactLanguages.find(({ language }) => language === "Other");
-  const barWidth = other ? width - otherLabelWidth - otherGap : width;
+  const barWidth = other ? contentWidth - otherLabelWidth - otherGap : contentWidth;
   let offset = 0;
 
   const barSegments = compactLanguages.map(({ language, value }, index) => {
     const segmentWidth = Math.max(0, (value / total) * barWidth);
-    const x = offset;
+    const x = paddingX + offset;
     offset += segmentWidth;
     return `<path d="${roundedRectPath(x, barY, segmentWidth, barHeight, index === 0 ? 11 : 0, index === compactLanguages.length - 1 ? 11 : 0)}" fill="${colorFor(language)}" />`;
   }).join("\n    ");
@@ -245,7 +252,7 @@ function renderCompactSvg(languages, total, options) {
   offset = 0;
   const labels = compactLanguages.filter(({ language }) => language !== "Other").map(({ language, value }) => {
     const segmentWidth = Math.max(0, (value / total) * barWidth);
-    const x = offset + segmentWidth / 2;
+    const x = paddingX + offset + segmentWidth / 2;
     offset += segmentWidth;
     const pct = ((value / total) * 100).toFixed(1);
 
@@ -255,7 +262,7 @@ function renderCompactSvg(languages, total, options) {
     </g>`;
   }).join("\n    ");
 
-  const otherLabel = other ? `<g transform="translate(${width - 2} ${barY + 3})">
+  const otherLabel = other ? `<g transform="translate(${width - paddingX} ${barY + 3})">
     <text x="0" y="0" text-anchor="end" class="other-name">Other</text>
     <text x="0" y="18" text-anchor="end" class="other-value">${((other.value / total) * 100).toFixed(1)}%</text>
   </g>` : "";
@@ -265,6 +272,7 @@ function renderCompactSvg(languages, total, options) {
   <desc id="desc">${escapeXml(svgDescription(options.metric))}</desc>
   <style>
     text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .card-bg { fill: #f6f8fa; stroke: #d0d7de; }
     .title { fill: #24292f; font-size: 18px; font-weight: 600; }
     .meta { fill: #57606a; font-size: 12px; }
     .name { fill: #111827; font-size: 12px; font-weight: 800; }
@@ -272,12 +280,14 @@ function renderCompactSvg(languages, total, options) {
     .other-name { fill: #111827; font-size: 11px; font-weight: 800; }
     .other-value { fill: #1f2937; font-size: 10px; font-weight: 800; }
     @media (prefers-color-scheme: dark) {
+      .card-bg { fill: #161b22; stroke: #30363d; }
       .title, .name, .other-name { fill: #f0f6fc; }
       .meta, .value, .other-value { fill: #c9d1d9; }
     }
   </style>
-  <text x="0" y="30" class="title">${escapeXml(options.title)}</text>
-  <text x="520" y="30" text-anchor="end" class="meta">${escapeXml(options.subtitle)}</text>
+  <rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" rx="8" class="card-bg" />
+  <text x="${paddingX}" y="30" class="title">${escapeXml(options.title)}</text>
+  <text x="${width - paddingX}" y="30" text-anchor="end" class="meta">${escapeXml(options.subtitle)}</text>
   <g>
     ${barSegments}
   </g>

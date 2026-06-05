@@ -3,49 +3,52 @@
   <desc id="desc">Recent language activity by GitHub commit file change counts across repositories available to the token.</desc>
   <style>
     text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .card-bg { fill: #f6f8fa; stroke: #d0d7de; }
     .title { fill: #24292f; font-size: 18px; font-weight: 600; }
     .meta { fill: #57606a; font-size: 12px; }
     .name { fill: #24292f; font-size: 13px; font-weight: 600; }
     .value { fill: #57606a; font-size: 12px; }
     @media (prefers-color-scheme: dark) {
+      .card-bg { fill: #161b22; stroke: #30363d; }
       .title, .name { fill: #c9d1d9; }
       .meta, .value { fill: #8b949e; }
     }
   </style>
-  <text x="0" y="30" class="title">Recent Languages</text>
-  <text x="520" y="30" text-anchor="end" class="meta">last 8 weeks</text>
-  <clipPath id="bar"><rect x="0" y="54" width="520" height="10" rx="5" /></clipPath>
+  <rect x="0.5" y="0.5" width="519" height="217" rx="8" class="card-bg" />
+  <text x="18" y="30" class="title">Recent Languages</text>
+  <text x="502" y="30" text-anchor="end" class="meta">last 8 weeks</text>
+  <clipPath id="bar"><rect x="18" y="54" width="484" height="10" rx="5" /></clipPath>
   <g clip-path="url(#bar)">
-    <rect x="0" y="54" width="520" height="10" fill="#d0d7de" />
-    <rect x="0.00" y="54" width="255.68" height="10" fill="#3178c6" />
-    <rect x="255.68" y="54" width="131.30" height="10" fill="#3572A5" />
-    <rect x="386.98" y="54" width="72.56" height="10" fill="#dea584" />
-    <rect x="459.53" y="54" width="44.92" height="10" fill="#00ADD8" />
-    <rect x="504.45" y="54" width="15.55" height="10" fill="#89e051" />
+    <rect x="18" y="54" width="484" height="10" fill="#d0d7de" />
+    <rect x="18.00" y="54" width="237.98" height="10" fill="#3178c6" />
+    <rect x="255.98" y="54" width="122.21" height="10" fill="#3572A5" />
+    <rect x="378.19" y="54" width="67.53" height="10" fill="#dea584" />
+    <rect x="445.72" y="54" width="41.81" height="10" fill="#00ADD8" />
+    <rect x="487.53" y="54" width="14.47" height="10" fill="#89e051" />
   </g>
-  <g transform="translate(0 92)">
+  <g transform="translate(18 92)">
       <circle cx="5" cy="-4" r="5" fill="#3178c6" />
       <text x="18" y="0" class="name">TypeScript</text>
-      <text x="520" y="0" text-anchor="end" class="value">49.2% &#183; 1,480 changes</text>
+      <text x="484" y="0" text-anchor="end" class="value">49.2% &#183; 1,480 changes</text>
     </g>
-    <g transform="translate(0 120)">
+    <g transform="translate(18 120)">
       <circle cx="5" cy="-4" r="5" fill="#3572A5" />
       <text x="18" y="0" class="name">Python</text>
-      <text x="520" y="0" text-anchor="end" class="value">25.2% &#183; 760 changes</text>
+      <text x="484" y="0" text-anchor="end" class="value">25.2% &#183; 760 changes</text>
     </g>
-    <g transform="translate(0 148)">
+    <g transform="translate(18 148)">
       <circle cx="5" cy="-4" r="5" fill="#dea584" />
       <text x="18" y="0" class="name">Rust</text>
-      <text x="520" y="0" text-anchor="end" class="value">14.0% &#183; 420 changes</text>
+      <text x="484" y="0" text-anchor="end" class="value">14.0% &#183; 420 changes</text>
     </g>
-    <g transform="translate(0 176)">
+    <g transform="translate(18 176)">
       <circle cx="5" cy="-4" r="5" fill="#00ADD8" />
       <text x="18" y="0" class="name">Go</text>
-      <text x="520" y="0" text-anchor="end" class="value">8.6% &#183; 260 changes</text>
+      <text x="484" y="0" text-anchor="end" class="value">8.6% &#183; 260 changes</text>
     </g>
-    <g transform="translate(0 204)">
+    <g transform="translate(18 204)">
       <circle cx="5" cy="-4" r="5" fill="#89e051" />
       <text x="18" y="0" class="name">Shell</text>
-      <text x="520" y="0" text-anchor="end" class="value">3.0% &#183; 90 changes</text>
+      <text x="484" y="0" text-anchor="end" class="value">3.0% &#183; 90 changes</text>
     </g>
 </svg>

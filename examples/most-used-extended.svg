@@ -3,61 +3,64 @@
   <desc id="desc">Language usage by GitHub language byte counts across repositories available to the token.</desc>
   <style>
     text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .card-bg { fill: #f6f8fa; stroke: #d0d7de; }
     .title { fill: #24292f; font-size: 18px; font-weight: 600; }
     .meta { fill: #57606a; font-size: 12px; }
     .name { fill: #24292f; font-size: 13px; font-weight: 600; }
     .value { fill: #57606a; font-size: 12px; }
     @media (prefers-color-scheme: dark) {
+      .card-bg { fill: #161b22; stroke: #30363d; }
       .title, .name { fill: #c9d1d9; }
       .meta, .value { fill: #8b949e; }
     }
   </style>
-  <text x="0" y="30" class="title">Most Used Languages</text>
-  <text x="520" y="30" text-anchor="end" class="meta">all-time</text>
-  <clipPath id="bar"><rect x="0" y="54" width="520" height="10" rx="5" /></clipPath>
+  <rect x="0.5" y="0.5" width="519" height="273" rx="8" class="card-bg" />
+  <text x="18" y="30" class="title">Most Used Languages</text>
+  <text x="502" y="30" text-anchor="end" class="meta">all-time</text>
+  <clipPath id="bar"><rect x="18" y="54" width="484" height="10" rx="5" /></clipPath>
   <g clip-path="url(#bar)">
-    <rect x="0" y="54" width="520" height="10" fill="#d0d7de" />
-    <rect x="0.00" y="54" width="225.75" height="10" fill="#3178c6" />
-    <rect x="225.75" y="54" width="150.50" height="10" fill="#f1e05a" />
-    <rect x="376.26" y="54" width="65.85" height="10" fill="#3572A5" />
-    <rect x="442.10" y="54" width="40.42" height="10" fill="#00ADD8" />
-    <rect x="482.52" y="54" width="24.80" height="10" fill="#dea584" />
-    <rect x="507.32" y="54" width="8.27" height="10" fill="#89e051" />
-    <rect x="515.59" y="54" width="4.41" height="10" fill="#384d54" />
+    <rect x="18" y="54" width="484" height="10" fill="#d0d7de" />
+    <rect x="18.00" y="54" width="210.13" height="10" fill="#3178c6" />
+    <rect x="228.13" y="54" width="140.08" height="10" fill="#f1e05a" />
+    <rect x="368.21" y="54" width="61.29" height="10" fill="#3572A5" />
+    <rect x="429.50" y="54" width="37.62" height="10" fill="#00ADD8" />
+    <rect x="467.12" y="54" width="23.09" height="10" fill="#dea584" />
+    <rect x="490.20" y="54" width="7.70" height="10" fill="#89e051" />
+    <rect x="497.90" y="54" width="4.10" height="10" fill="#384d54" />
   </g>
-  <g transform="translate(0 92)">
+  <g transform="translate(18 92)">
       <circle cx="5" cy="-4" r="5" fill="#3178c6" />
       <text x="18" y="0" class="name">TypeScript</text>
-      <text x="520" y="0" text-anchor="end" class="value">43.4% &#183; 4.8 MB</text>
+      <text x="484" y="0" text-anchor="end" class="value">43.4% &#183; 4.8 MB</text>
     </g>
-    <g transform="translate(0 120)">
+    <g transform="translate(18 120)">
       <circle cx="5" cy="-4" r="5" fill="#f1e05a" />
       <text x="18" y="0" class="name">JavaScript</text>
-      <text x="520" y="0" text-anchor="end" class="value">28.9% &#183; 3.2 MB</text>
+      <text x="484" y="0" text-anchor="end" class="value">28.9% &#183; 3.2 MB</text>
     </g>
-    <g transform="translate(0 148)">
+    <g transform="translate(18 148)">
       <circle cx="5" cy="-4" r="5" fill="#3572A5" />
       <text x="18" y="0" class="name">Python</text>
-      <text x="520" y="0" text-anchor="end" class="value">12.7% &#183; 1.4 MB</text>
+      <text x="484" y="0" text-anchor="end" class="value">12.7% &#183; 1.4 MB</text>
     </g>
-    <g transform="translate(0 176)">
+    <g transform="translate(18 176)">
       <circle cx="5" cy="-4" r="5" fill="#00ADD8" />
       <text x="18" y="0" class="name">Go</text>
-      <text x="520" y="0" text-anchor="end" class="value">7.8% &#183; 880.0 KB</text>
+      <text x="484" y="0" text-anchor="end" class="value">7.8% &#183; 880.0 KB</text>
     </g>
-    <g transform="translate(0 204)">
+    <g transform="translate(18 204)">
       <circle cx="5" cy="-4" r="5" fill="#dea584" />
       <text x="18" y="0" class="name">Rust</text>
-      <text x="520" y="0" text-anchor="end" class="value">4.8% &#183; 540.0 KB</text>
+      <text x="484" y="0" text-anchor="end" class="value">4.8% &#183; 540.0 KB</text>
     </g>
-    <g transform="translate(0 232)">
+    <g transform="translate(18 232)">
       <circle cx="5" cy="-4" r="5" fill="#89e051" />
       <text x="18" y="0" class="name">Shell</text>
-      <text x="520" y="0" text-anchor="end" class="value">1.6% &#183; 180.0 KB</text>
+      <text x="484" y="0" text-anchor="end" class="value">1.6% &#183; 180.0 KB</text>
     </g>
-    <g transform="translate(0 260)">
+    <g transform="translate(18 260)">
       <circle cx="5" cy="-4" r="5" fill="#384d54" />
       <text x="18" y="0" class="name">Dockerfile</text>
-      <text x="520" y="0" text-anchor="end" class="value">0.8% &#183; 96.0 KB</text>
+      <text x="484" y="0" text-anchor="end" class="value">0.8% &#183; 96.0 KB</text>
     </g>
 </svg>

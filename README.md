@@ -7,6 +7,7 @@ GitStats can show both long-term language composition and recent language activi
 - **Most Used Languages** uses GitHub language byte totals from the current repository state.
 - **Recent Languages** uses commit file change counts from a configurable number of weeks.
 - Both representations can render as **Extended** or **Compact** cards.
+- All variants include internal horizontal padding and a subtle card background that remains distinct from GitHub's page background in light and dark mode.
 - Settings can live in your README through named `gitstats:config` blocks.
 
 ## Quick Setup
