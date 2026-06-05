@@ -2,7 +2,7 @@
 
 Generate a clean GitHub language statistics SVG for your profile README.
 
-I did not like the styling - nor the functionality of existing Graphics. 
+I did not like the styling - nor the functionality of existing Graphics.
 Enjoy.
 
 ## What It Shows
@@ -85,7 +85,14 @@ read:user
 
 Use `repo` if you want private repositories included. For public repositories only, `public_repo` and `read:user` may be enough, depending on your account and repository access.
 
-For fine-grained Personal Access Tokens, grant access to the repositories you want included and allow read access to repository metadata/contents where applicable.
+For fine-grained Personal Access Tokens:
+
+- Set **Repository access** to the repositories you want included, or **All repositories**.
+- Set **Repository permissions -> Metadata** to **Read-only**.
+- No **Contents** permission is required by the current GitStats implementation.
+- If the token is scoped to an organization with SSO, authorize the token for that organization.
+
+GitStats currently calls two GitHub REST endpoints: `GET /user/repos` and `GET /repos/{owner}/{repo}/languages`. GitHub documents both as compatible with fine-grained personal access tokens, and the languages endpoint requires only `Metadata: read` for private repository access.
 
 Add the secret in your profile repository:
 
