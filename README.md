@@ -5,6 +5,14 @@ Generate a clean GitHub language statistics SVG for your profile README.
 I did not like the styling - nor the functionality of existing Graphics.
 Enjoy.
 
+## Preview
+
+<p align="center">
+  <img src="./examples/languages.svg" alt="Example GitStats language card" />
+</p>
+
+The preview above uses fake example numbers. When GitStats runs in your workflow, it generates the same style of SVG from your actual GitHub repository language data.
+
 ## What It Shows
 
 - Top programming languages by GitHub language byte count
@@ -17,7 +25,7 @@ GitStats uses GitHub's official REST API and the same language data GitHub expos
 
 ## Quick Start
 
-Add this workflow to your profile README repository, usually `YOUR_USERNAME/YOUR_USERNAME`:
+Add this workflow to the repository where you want the generated SVG to live. For GitHub profile READMEs, that is usually `YOUR_USERNAME/YOUR_USERNAME`.
 
 ```yaml
 name: GitStats
@@ -65,6 +73,12 @@ Then add this to your `README.md`:
 ```
 
 Run the workflow manually once from the Actions tab. After the first successful run, the SVG will be committed to your repository and shown in your README.
+
+## Does It Have To Run In A Profile Repo?
+
+No. GitStats can run in any repository where GitHub Actions is enabled and where the workflow token has permission to commit the generated SVG.
+
+The profile repo is just the most common setup because GitHub displays `YOUR_USERNAME/YOUR_USERNAME`'s `README.md` on your profile. You can also use GitStats in a project repo, docs repo, organization profile repo, or any other repository where you want a generated language card.
 
 ## Token Setup
 
@@ -174,7 +188,7 @@ The token is never written to the generated SVG or README. It is only used durin
 3. Reads language byte counts from `/repos/{owner}/{repo}/languages`.
 4. Aggregates bytes by language.
 5. Renders a static SVG.
-6. Your workflow commits that SVG to your profile repository.
+6. Your workflow commits that SVG to your repository.
 
 GitHub calculates repository language statistics with Linguist. GitStats does not inspect your source code directly; it uses GitHub's already-calculated language data.
 
@@ -183,7 +197,7 @@ GitHub calculates repository language statistics with Linguist. GitStats does no
 - The numbers are byte counts from GitHub's language API, not literal lines of code.
 - Hidden languages are removed before percentages are calculated.
 - Private repositories are included only if your token can read them.
-- The generated SVG is public if committed to a public profile repository, so it can reveal aggregate language usage from private repositories.
+- The generated SVG is public if committed to a public repository, so it can reveal aggregate language usage from private repositories.
 - The SVG does not reveal private repository names or source code.
 
 ## Security
