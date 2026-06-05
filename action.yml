@@ -1,0 +1,86 @@
+name: GitStats
+description: Generate a GitHub language statistics SVG for profile READMEs, including private repositories when a token is provided.
+author: One-Simon
+
+branding:
+  icon: bar-chart-2
+  color: blue
+
+inputs:
+  token:
+    description: GitHub token used to read repositories and language data. Use a PAT with repo and read:user to include private repositories.
+    required: true
+  username:
+    description: GitHub username to generate stats for. Defaults to the repository owner.
+    required: false
+    default: ${{ github.repository_owner }}
+  output:
+    description: Output SVG path, relative to the workflow workspace.
+    required: false
+    default: profile/languages.svg
+  max-languages:
+    description: Maximum number of languages to display.
+    required: false
+    default: "10"
+  hide-languages:
+    description: Comma-separated list of languages to hide.
+    required: false
+    default: HTML,CSS
+  include-forks:
+    description: Include forked repositories.
+    required: false
+    default: "false"
+  include-archived:
+    description: Include archived repositories.
+    required: false
+    default: "false"
+  include-profile-repo:
+    description: Include the profile repository named the same as the username.
+    required: false
+    default: "false"
+  affiliation:
+    description: Repository affiliation query for /user/repos. Use owner for owned repos, or owner,collaborator,organization_member for broader access.
+    required: false
+    default: owner
+  visibility:
+    description: Repository visibility query for /user/repos. Use all, public, or private.
+    required: false
+    default: all
+  title:
+    description: SVG title.
+    required: false
+    default: Most Used Languages
+  subtitle:
+    description: SVG subtitle.
+    required: false
+    default: public + private
+  user-agent:
+    description: User-Agent header for GitHub API requests.
+    required: false
+    default: GitStats-language-card
+
+outputs:
+  output:
+    description: Path to the generated SVG.
+    value: ${{ inputs.output }}
+
+runs:
+  using: composite
+  steps:
+    - name: Generate GitStats language SVG
+      shell: bash
+      env:
+        GITSTATS_TOKEN: ${{ inputs.token }}
+        GITSTATS_USERNAME: ${{ inputs.username }}
+        GITSTATS_OUTPUT: ${{ inputs.output }}
+        GITSTATS_MAX_LANGUAGES: ${{ inputs.max-languages }}
+        GITSTATS_HIDE_LANGUAGES: ${{ inputs.hide-languages }}
+        GITSTATS_INCLUDE_FORKS: ${{ inputs.include-forks }}
+        GITSTATS_INCLUDE_ARCHIVED: ${{ inputs.include-archived }}
+        GITSTATS_INCLUDE_PROFILE_REPO: ${{ inputs.include-profile-repo }}
+        GITSTATS_AFFILIATION: ${{ inputs.affiliation }}
+        GITSTATS_VISIBILITY: ${{ inputs.visibility }}
+        GITSTATS_TITLE: ${{ inputs.title }}
+        GITSTATS_SUBTITLE: ${{ inputs.subtitle }}
+        GITSTATS_USER_AGENT: ${{ inputs.user-agent }}
+      run: node "$GITHUB_ACTION_PATH/src/generate-languages.mjs"
