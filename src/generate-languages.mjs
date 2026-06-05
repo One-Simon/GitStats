@@ -6,6 +6,7 @@ import { promisify } from "node:util";
 
 const README_CONFIG_START = "<!-- gitstats:config";
 const README_CONFIG_END = "gitstats:config -->";
+const README_DISPLAY_MARKER = "<!-- gitstats:display -->";
 const ALL_TIME = "all-time";
 const METRIC_BYTES = "bytes";
 const METRIC_CHANGES = "changes";
@@ -139,6 +140,33 @@ function findNextConfigStart(markdown, searchStart) {
   }
 
   return -1;
+}
+
+function findDisplayMarkers(markdown) {
+  const markers = [];
+  let inFence = false;
+  let fenceChar = "";
+  let offset = 0;
+  const lines = markdown.match(/[^\r\n]*(?:\r\n|\n|$)/g) || [];
+
+  for (const rawLine of lines) {
+    if (!rawLine) continue;
+
+    const line = rawLine.replace(/\r?\n$/, "");
+    const trimmedStart = line.trimStart();
+    const fence = trimmedStart.match(/^(```+|~~~+)/)?.[1];
+
+    if (fence && (!inFence || fence[0] === fenceChar)) {
+      inFence = !inFence;
+      fenceChar = inFence ? fence[0] : "";
+    } else if (!inFence && line.trim() === README_DISPLAY_MARKER) {
+      markers.push({ start: offset, end: offset + rawLine.length });
+    }
+
+    offset += rawLine.length;
+  }
+
+  return markers;
 }
 
 function withoutFencedCodeBlocks(markdown) {
@@ -709,6 +737,8 @@ function mergeConfig(options, readmeConfig) {
     includeProfileRepo: readmeConfig["include-profile-repo"] ?? options.includeProfileRepo,
     grouping: readmeConfig.grouping ?? options.grouping,
     showValues: readmeConfig["show-values"] ?? options.showValues,
+    "display-width": readmeConfig["display-width"] ?? options["display-width"],
+    "display-alt": readmeConfig["display-alt"] ?? options["display-alt"],
     affiliation: readmeConfig.affiliation ?? options.affiliation,
     visibility: readmeConfig.visibility ?? options.visibility,
   };
@@ -812,6 +842,55 @@ function outputPathForConfig(entry, options, usedOutputPaths) {
   return candidate;
 }
 
+function eolFor(markdown) {
+  return markdown.includes("\r\n") ? "\r\n" : "\n";
+}
+
+function renderDisplayHtml(cards) {
+  const imageHtml = cards.map(({ output, options }) => {
+    const width = options["display-width"] || "100%";
+    const alt = options["display-alt"] || options.title || defaultTitle(options.timeframe);
+    return `  <img width="${escapeXml(width)}" src="./${escapeXml(output)}" alt="${escapeXml(alt)}" />`;
+  });
+
+  return [
+    '<div align="center">',
+    imageHtml.join("\n  <br />\n  <br />\n"),
+    "</div>",
+  ].join("\n");
+}
+
+function readmeDisplayMarkers(markdown) {
+  const markers = findDisplayMarkers(markdown);
+
+  if (!markers.length) {
+    throw new Error(`README GitStats display block was not found. Add two ${README_DISPLAY_MARKER} markers where the generated cards should appear.`);
+  }
+  if (markers.length === 1) {
+    throw new Error(`README GitStats display block needs a closing ${README_DISPLAY_MARKER} marker.`);
+  }
+  if (markers.length > 2) {
+    throw new Error(`README GitStats display block is ambiguous. Use exactly two ${README_DISPLAY_MARKER} markers.`);
+  }
+
+  return markers;
+}
+
+function replaceReadmeDisplay(markdown, cards) {
+  const markers = readmeDisplayMarkers(markdown);
+
+  const eol = eolFor(markdown);
+  const displayHtml = renderDisplayHtml(cards).replaceAll("\n", eol);
+  return `${markdown.slice(0, markers[0].end)}${displayHtml}${eol}${markdown.slice(markers[1].start)}`;
+}
+
+async function updateReadmeDisplay(path, markdown, cards) {
+  const updated = replaceReadmeDisplay(markdown, cards);
+  if (updated === markdown) return null;
+  await writeFile(path, updated, "utf8");
+  return path;
+}
+
 async function writeGeneratedFilesOutput(paths, env) {
   if (!env.GITHUB_OUTPUT) return;
   await appendFile(env.GITHUB_OUTPUT, `generated-files<<EOF\n${paths.join("\n")}\nEOF\n`, "utf8");
@@ -863,15 +942,18 @@ async function writeLanguageSvg(options) {
 
 export async function main(env = process.env) {
   const envOptions = optionsFromEnv(env);
-  const readmeConfigs = await loadReadmeConfigEntries(envOptions.readmeConfigPath);
+  const readmeMarkdown = envOptions.readmeConfigPath ? await readFile(envOptions.readmeConfigPath, "utf8") : "";
+  const readmeConfigs = parseReadmeConfigEntries(readmeMarkdown);
   if (!readmeConfigs.length) {
     throw new Error(
       `No README GitStats config blocks found in ${envOptions.readmeConfigPath || "README.md"}. Add at least one <!-- gitstats:config --> block.`,
     );
   }
+  readmeDisplayMarkers(readmeMarkdown);
 
   const usedOutputPaths = new Set();
   const generatedFiles = [];
+  const generatedCards = [];
 
   for (const entry of readmeConfigs) {
     const options = mergeConfig(envOptions, entry.config);
@@ -879,10 +961,13 @@ export async function main(env = process.env) {
     validateOptions(options);
     await writeLanguageSvg(options);
     generatedFiles.push(options.output);
+    generatedCards.push({ output: options.output, options });
   }
 
+  const updatedReadme = await updateReadmeDisplay(envOptions.readmeConfigPath, readmeMarkdown, generatedCards);
+  const commitPaths = updatedReadme ? [...generatedFiles, updatedReadme] : generatedFiles;
   await writeGeneratedFilesOutput(generatedFiles, env);
-  await commitGeneratedFiles(generatedFiles, envOptions.commit);
+  await commitGeneratedFiles(commitPaths, envOptions.commit);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

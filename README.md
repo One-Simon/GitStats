@@ -21,7 +21,7 @@ This default setup generates two cards:
 
 Add this workflow to the repository where the SVG files should be committed. For a GitHub profile README, that is usually `YOUR_USERNAME/YOUR_USERNAME`.
 
-GitStats is published as a reusable GitHub Action, but users still need to add a workflow manually. The workflow decides when the action runs and grants write permission to the current repository. GitStats then reads the README config blocks, generates the SVG files, and commits changed SVGs automatically.
+GitStats is published as a reusable GitHub Action, but users still need to add a workflow manually. The workflow decides when the action runs and grants write permission to the current repository. GitStats then reads the README config blocks, generates the SVG files, updates the managed display section, and commits changed files automatically.
 
 ```yaml
 name: GitStats
@@ -49,7 +49,7 @@ jobs:
           username: YOUR_USERNAME
 ```
 
-Then add the panel settings and image HTML to your `README.md`.
+Then add the panel settings and display placeholder to your `README.md`.
 
 The omitted settings below use the defaults, including `hide-languages: HTML,CSS,JSON`, `grouping: true`, and `max-languages: 10`.
 
@@ -60,10 +60,6 @@ Most Used Languages:
 style: normal
 timeframe: all-time
 gitstats:config -->
-
-<div align="center">
-  <img width="100%" src="./profile/most-used.svg" alt="Most used programming languages" />
-</div>
 ```
 
 Recent Languages:
@@ -73,10 +69,13 @@ Recent Languages:
 style: compact
 timeframe: 8
 gitstats:config -->
+```
 
-<div align="center">
-  <img width="100%" src="./profile/recent.svg" alt="Recent programming languages" />
-</div>
+Managed display section:
+
+```md
+<!-- gitstats:display -->
+<!-- gitstats:display -->
 ```
 
 Run the workflow once from the Actions tab. After the first successful run, the generated SVGs will be committed and displayed in your README.
@@ -87,6 +86,7 @@ GitStats reads every `gitstats:config` block in your README and generates one SV
 
 Only set the values you want to change. Omitted settings use the defaults below.
 Config blocks shown inside fenced code examples are ignored.
+Add exactly one display section with two `<!-- gitstats:display -->` markers. GitStats rewrites the content between those markers with matching image tags for all generated SVGs.
 
 ```md
 <!-- gitstats:config example-name
@@ -113,6 +113,8 @@ Unnamed blocks are also supported. GitStats derives names from the settings, suc
 | `include-profile-repo` | `false` | Includes the `username/username` profile repository. |
 | `affiliation` | `owner` | Repository affiliation passed to GitHub. Use `owner,collaborator,organization_member` for broader access. |
 | `visibility` | `all` | Repository visibility passed to GitHub. |
+| `display-width` | `100%` | Width attribute for this card inside the managed README display section. |
+| `display-alt` | Automatic | Alt text for this card inside the managed README display section. |
 
 The subtitle is always generated from `timeframe`: `all-time` for all-time renders, or `last N weeks` for numbered timeframes.
 
@@ -231,7 +233,8 @@ For fine-grained Personal Access Tokens:
 5. For a numbered timeframe, reads commits since that many weeks ago and aggregates changed files by language.
 6. Applies `hide-languages`, dynamic grouping, and `max-languages`.
 7. Renders one SVG for every README config block.
-8. Commits changed generated SVGs when `commit: true`.
+8. Rewrites the managed README display section with matching image tags.
+9. Commits changed generated SVGs and README display updates when `commit: true`.
 
 ## Troubleshooting
 
@@ -245,7 +248,11 @@ GitStats reads repository, language, and commit data through the GitHub API. Wai
 
 ### The card does not use my README config
 
-Make sure the workflow uses `readme-config: README.md` or leaves that input at its default. Also check that the image path matches the config block name. For example, `<!-- gitstats:config most-used` writes to `profile/most-used.svg`.
+Make sure the workflow uses `readme-config: README.md` or leaves that input at its default. Config blocks inside fenced code examples are ignored, so active blocks should live directly in the README body.
+
+### The workflow cannot find a display block
+
+Add exactly two `<!-- gitstats:display -->` markers to your README. GitStats needs those markers to know where it may write the generated image HTML.
 
 ## Notes
 
@@ -256,6 +263,7 @@ Make sure the workflow uses `readme-config: README.md` or leaves that input at i
 - Private repository names and source code are not written to the SVG.
 - Generated SVGs are public if committed to a public repository.
 - Automatic commits use the workflow `GITHUB_TOKEN` from `actions/checkout`, not the stats token.
+- GitStats only rewrites content between the two `gitstats:display` markers.
 
 ## License
 
