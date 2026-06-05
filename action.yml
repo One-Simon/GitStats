@@ -29,7 +29,7 @@ inputs:
   hide-languages:
     description: Comma-separated list of languages to exclude after loading all detected languages.
     required: false
-    default: HTML,CSS
+    default: HTML,CSS,JSON
   include-forks:
     description: Include forked repositories.
     required: false

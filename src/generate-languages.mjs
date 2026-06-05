@@ -627,7 +627,7 @@ export function optionsFromEnv(env = process.env) {
     output: env.GITSTATS_OUTPUT || "profile/languages.svg",
     maxLanguages,
     timeframe,
-    hideLanguages: parseCsv(env.GITSTATS_HIDE_LANGUAGES || "HTML,CSS"),
+    hideLanguages: parseCsv(env.GITSTATS_HIDE_LANGUAGES || "HTML,CSS,JSON"),
     includeForks: parseBoolean(env.GITSTATS_INCLUDE_FORKS),
     includeArchived: parseBoolean(env.GITSTATS_INCLUDE_ARCHIVED),
     includeProfileRepo: parseBoolean(env.GITSTATS_INCLUDE_PROFILE_REPO),

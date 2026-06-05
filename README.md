@@ -1,26 +1,27 @@
 # GitStats
 
-Generate GitHub language stats SVGs for profile READMEs.
+Generate configurable GitHub language stats SVGs for profile READMEs.
 
-GitStats can show both long-term language composition and recent language activity:
+GitStats is a configurable stats viewer for language usage and recent language activity:
 
-- **Most Used Languages** uses GitHub language byte totals from the current repository state.
-- **Recent Languages** uses commit file change counts from a configurable number of weeks.
-- Both representations can render as **Extended** or **Compact** cards.
-- All variants include internal horizontal padding and a subtle card background that remains distinct from GitHub's page background in light and dark mode.
-- Settings can live in your README through named `gitstats:config` blocks.
+- Choose the data timeframe: `all-time` language bytes or a recent number of weeks.
+- Choose the display style: `normal` with a list, or `compact` with a labeled bar.
+- Hide languages, group small entries into `Other`, cap the number of displayed rows, and control value display from README config blocks.
+- Generated SVGs include internal horizontal padding and a subtle card background that remains distinct from GitHub's page background in light and dark mode.
 
 > [!IMPORTANT]
 > GitHub may cache README images for a short while after the workflow updates the SVG files. If the raw SVG file is correct but the README still shows the old card, please wait a bit and refresh later.
 
 ## Quick Setup
 
-This default template generates two cards:
+This default setup generates two cards:
 
-- Most Used Languages, Extended, all-time bytes.
-- Recent Languages, Compact, last 8 weeks of changes.
+- Most Used Languages, normal style, all-time bytes.
+- Recent Languages, compact style, last 8 weeks of changes.
 
 Add this workflow to the repository where the SVG files should be committed. For a GitHub profile README, that is usually `YOUR_USERNAME/YOUR_USERNAME`.
+
+GitStats is published as a reusable GitHub Action, but users still need to add a workflow manually. The workflow decides when the action runs, passes the token and config name, and commits the generated SVG files back into the README repository.
 
 ```yaml
 name: GitStats
@@ -66,7 +67,11 @@ jobs:
           git push
 ```
 
-Then add this to your `README.md`:
+Then add the panel settings and image HTML to your `README.md`.
+
+The omitted settings below use the defaults, including `hide-languages: HTML,CSS,JSON`, `grouping: true`, and `max-languages: 10`.
+
+Most Used Languages:
 
 ```md
 <!-- gitstats:config most-used
@@ -74,15 +79,22 @@ style: normal
 timeframe: all-time
 gitstats:config -->
 
+<div align="center">
+  <img width="100%" src="./profile/languages-most-used.svg" alt="Most used programming languages" />
+</div>
+```
+
+Recent Languages:
+
+```md
 <!-- gitstats:config recent
 style: compact
 timeframe: 8
 gitstats:config -->
 
-<p align="center">
-  <img width="100%" src="./profile/languages-most-used.svg" alt="Most used programming languages" />
+<div align="center">
   <img width="100%" src="./profile/languages-recent.svg" alt="Recent programming languages" />
-</p>
+</div>
 ```
 
 Run the workflow once from the Actions tab. After the first successful run, the generated SVGs will be committed and displayed in your README.
@@ -103,12 +115,12 @@ gitstats:config -->
 | Setting | Default | Description |
 | --- | --- | --- |
 | `title` | Automatic | Optional card title override. Defaults to `Most Used Languages` for `all-time`, or `Recent Languages` for numbered timeframes. |
-| `style` | `normal` | `normal` renders the extended card with a list. `compact` renders a thicker labeled bar. |
+| `style` | `normal` | `normal` renders the full card with a list. `compact` renders a thicker labeled bar. |
 | `timeframe` | `all-time` | `all-time` uses GitHub language bytes. A number, such as `8`, uses recent commit changes from that many weeks. |
 | `show-values` | `true` | Shows byte or change totals in the normal renderer. Compact always shows percentages only. |
 | `grouping` | `true` | Groups the smallest languages into `Other` until the bucket is near 5%. |
 | `max-languages` | `10` | Maximum number of displayed entries, including `Other`. Overflow languages are grouped into `Other`. |
-| `hide-languages` | `HTML,CSS` | Comma-separated languages to exclude after loading all detected languages. |
+| `hide-languages` | `HTML,CSS,JSON` | Comma-separated languages to exclude after loading all detected languages. |
 | `include-forks` | `false` | Includes forked repositories. |
 | `include-archived` | `false` | Includes archived repositories. |
 | `include-profile-repo` | `false` | Includes the `username/username` profile repository. |
@@ -119,48 +131,50 @@ The subtitle is always generated from `timeframe`: `all-time` for all-time rende
 
 Grouping is applied after hidden languages are removed. When `grouping: true`, GitStats groups the smallest languages into `Other` until that bucket is close to 5%, preferring a smaller bucket over pulling in a language that would push `Other` above 5.5%. If there are still more entries than `max-languages`, the lowest remaining entries are also merged into `Other`.
 
-## Variants
+## Configuration Examples
 
-### Most Used Languages, Extended
+These are example configurations for the same stats viewer. Mix `style`, `timeframe`, and the other settings however you want.
+
+### All-Time, Normal
 
 ```md
-<!-- gitstats:config most-used-extended
+<!-- gitstats:config all-time-normal
 style: normal
 timeframe: all-time
 gitstats:config -->
 ```
 
 <p align="center">
-  <img width="100%" src="./examples/most-used-extended.svg" alt="Most Used Languages extended example" />
+  <img width="100%" src="./examples/most-used-extended.svg" alt="All-time normal language stats example" />
 </p>
 
-### Most Used Languages, Compact
+### All-Time, Compact
 
 ```md
-<!-- gitstats:config most-used-compact
+<!-- gitstats:config all-time-compact
 style: compact
 timeframe: all-time
 gitstats:config -->
 ```
 
 <p align="center">
-  <img width="100%" src="./examples/most-used-compact.svg" alt="Most Used Languages compact example" />
+  <img width="100%" src="./examples/most-used-compact.svg" alt="All-time compact language stats example" />
 </p>
 
-### Recent Languages, Extended
+### Recent, Normal
 
 ```md
-<!-- gitstats:config recent-extended
+<!-- gitstats:config recent-normal
 style: normal
 timeframe: 8
 gitstats:config -->
 ```
 
 <p align="center">
-  <img width="100%" src="./examples/recent-extended.svg" alt="Recent Languages extended example" />
+  <img width="100%" src="./examples/recent-extended.svg" alt="Recent normal language stats example" />
 </p>
 
-### Recent Languages, Compact
+### Recent, Compact
 
 ```md
 <!-- gitstats:config recent-compact
@@ -170,7 +184,7 @@ gitstats:config -->
 ```
 
 <p align="center">
-  <img width="100%" src="./examples/recent-compact.svg" alt="Recent Languages compact example" />
+  <img width="100%" src="./examples/recent-compact.svg" alt="Recent compact language stats example" />
 </p>
 
 ## Action Inputs
@@ -186,7 +200,7 @@ README config blocks are recommended for display settings. Workflow inputs are s
 | `config-name` | Empty | Named README config block to use, for example `most-used` or `recent`. |
 | `max-languages` | `10` | Maximum number of displayed entries, including `Other`. |
 | `grouping` | `true` | Group the smallest languages into `Other` until the bucket is near 5%. |
-| `hide-languages` | `HTML,CSS` | Languages to exclude after loading all detected languages. |
+| `hide-languages` | `HTML,CSS,JSON` | Languages to exclude after loading all detected languages. |
 | `include-forks` | `false` | Include forked repositories. |
 | `include-archived` | `false` | Include archived repositories. |
 | `include-profile-repo` | `false` | Include the `username/username` profile repository. |
