@@ -19,9 +19,13 @@ inputs:
     required: false
     default: profile/languages.svg
   max-languages:
-    description: Maximum number of languages to display.
+    description: Maximum number of languages to display, including Other when lower-ranked languages are grouped.
     required: false
     default: "10"
+  grouping:
+    description: Group the smallest languages into Other until the bucket is near 5 percent.
+    required: false
+    default: "true"
   hide-languages:
     description: Comma-separated list of languages to exclude after loading all detected languages.
     required: false
@@ -90,6 +94,7 @@ runs:
         GITSTATS_USERNAME: ${{ inputs.username }}
         GITSTATS_OUTPUT: ${{ inputs.output }}
         GITSTATS_MAX_LANGUAGES: ${{ inputs.max-languages }}
+        GITSTATS_GROUPING: ${{ inputs.grouping }}
         GITSTATS_HIDE_LANGUAGES: ${{ inputs.hide-languages }}
         GITSTATS_INCLUDE_FORKS: ${{ inputs.include-forks }}
         GITSTATS_INCLUDE_ARCHIVED: ${{ inputs.include-archived }}

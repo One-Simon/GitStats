@@ -7,9 +7,19 @@ const README_CONFIG_END = "gitstats:config -->";
 const ALL_TIME = "all-time";
 const METRIC_BYTES = "bytes";
 const METRIC_CHANGES = "changes";
+const OTHER_LANGUAGE = "Other";
+const GROUPING_TARGET_MIN = 0.045;
+const GROUPING_TARGET_MAX = 0.055;
 
 export function parseBoolean(value) {
   return String(value || "false").toLowerCase() === "true";
+}
+
+function parseStrictBoolean(value) {
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized === "true") return true;
+  if (normalized === "false") return false;
+  return value;
 }
 
 async function github(path, headers) {
@@ -59,6 +69,7 @@ function parseCsv(value) {
 function parseReadmeConfigValue(key, value) {
   if (key === "max-languages") return Number(value);
   if (key === "timeframe") return parseTimeframe(value);
+  if (key === "grouping") return parseStrictBoolean(value);
   if (["include-forks", "include-archived", "include-profile-repo", "show-values"].includes(key)) {
     return parseBoolean(value);
   }
@@ -140,7 +151,7 @@ export function colorFor(language) {
     SCSS: "#c6538c",
     Jupyter: "#DA5B0B",
     R: "#198CE7",
-    Other: "#8b949e",
+    [OTHER_LANGUAGE]: "#8b949e",
   };
 
   if (colors[language]) return colors[language];
@@ -238,7 +249,7 @@ function renderCompactSvg(languages, total, options) {
   const otherLabelWidth = 42;
   const otherGap = 4;
   const compactLanguages = groupCompactLanguages(languages, total, contentWidth, otherLabelWidth + otherGap);
-  const other = compactLanguages.find(({ language }) => language === "Other");
+  const other = compactLanguages.find(({ language }) => language === OTHER_LANGUAGE);
   const barWidth = other ? contentWidth - otherLabelWidth - otherGap : contentWidth;
   let offset = 0;
 
@@ -250,7 +261,7 @@ function renderCompactSvg(languages, total, options) {
   }).join("\n    ");
 
   offset = 0;
-  const labels = compactLanguages.filter(({ language }) => language !== "Other").map(({ language, value }) => {
+  const labels = compactLanguages.filter(({ language }) => language !== OTHER_LANGUAGE).map(({ language, value }) => {
     const segmentWidth = Math.max(0, (value / total) * barWidth);
     const x = paddingX + offset + segmentWidth / 2;
     offset += segmentWidth;
@@ -326,7 +337,7 @@ function groupCompactLanguages(languages, total, width, otherReservedWidth) {
     const grouped = languages.slice(visibleCount);
     const labelWidth = grouped.length ? width - otherReservedWidth : width;
     const candidate = grouped.length
-      ? [...visible, { language: "Other", value: grouped.reduce((sum, item) => sum + item.value, 0) }]
+      ? mergeOtherBucket([...visible, ...grouped.map((item) => ({ ...item, language: OTHER_LANGUAGE }))])
       : visible;
 
     if (visible.every(({ language, value }) => {
@@ -338,7 +349,7 @@ function groupCompactLanguages(languages, total, width, otherReservedWidth) {
     }
   }
 
-  return [{ language: "Other", value: total }];
+  return [{ language: OTHER_LANGUAGE, value: total }];
 }
 
 function compactLabelWidth(label, pct) {
@@ -442,15 +453,93 @@ function languageForFilename(filename) {
   return extensions[extension] || null;
 }
 
-function filterAndRankTotals(totals, options) {
+export function filterAndRankTotals(totals, options) {
   const hide = new Set(options.hideLanguages.map((language) => language.toLowerCase()));
-
-  return [...totals.entries()]
+  const filtered = [...totals.entries()]
     .filter(([, value]) => value > 0)
     .filter(([language]) => !hide.has(language.toLowerCase()))
-    .map(([language, value]) => ({ language, value }))
-    .sort((a, b) => b.value - a.value)
-    .slice(0, options.maxLanguages);
+    .map(([language, value]) => ({ language, value }));
+
+  return groupAndRankLanguages(filtered, options);
+}
+
+export function groupAndRankLanguages(languages, options) {
+  const normalized = mergeOtherBucket(languages.filter(({ value }) => value > 0));
+  const total = normalized.reduce((sum, item) => sum + item.value, 0);
+  const afterPercentGrouping = options.grouping === false
+    ? normalized
+    : applyPercentGrouping(normalized, total);
+  return applyMaxLanguageGrouping(afterPercentGrouping, options.maxLanguages);
+}
+
+function compareLanguageEntries(a, b) {
+  if (b.value !== a.value) return b.value - a.value;
+  if (a.language === OTHER_LANGUAGE && b.language !== OTHER_LANGUAGE) return 1;
+  if (b.language === OTHER_LANGUAGE && a.language !== OTHER_LANGUAGE) return -1;
+  return a.language.localeCompare(b.language);
+}
+
+function mergeOtherBucket(languages) {
+  let otherValue = 0;
+  const named = [];
+
+  for (const item of languages) {
+    if (item.language === OTHER_LANGUAGE) {
+      otherValue += item.value;
+    } else {
+      named.push(item);
+    }
+  }
+
+  named.sort(compareLanguageEntries);
+  if (otherValue > 0) named.push({ language: OTHER_LANGUAGE, value: otherValue });
+  return named;
+}
+
+function applyPercentGrouping(languages, total) {
+  if (!total) return languages;
+
+  const named = languages.filter(({ language }) => language !== OTHER_LANGUAGE);
+  const otherValue = languages
+    .filter(({ language }) => language === OTHER_LANGUAGE)
+    .reduce((sum, item) => sum + item.value, 0);
+  const ascending = [...named].sort((a, b) => a.value - b.value || a.language.localeCompare(b.language));
+  const grouped = [];
+  let groupedValue = 0;
+
+  for (const item of ascending) {
+    const nextValue = groupedValue + item.value;
+    const nextRatio = nextValue / total;
+    if (nextRatio > GROUPING_TARGET_MAX) break;
+    grouped.push(item);
+    groupedValue = nextValue;
+    if (nextRatio >= GROUPING_TARGET_MIN) break;
+  }
+
+  if (!grouped.length) return languages;
+
+  const groupedLanguages = new Set(grouped.map(({ language }) => language));
+  return mergeOtherBucket([
+    ...named.filter(({ language }) => !groupedLanguages.has(language)),
+    { language: OTHER_LANGUAGE, value: otherValue + groupedValue },
+  ]);
+}
+
+function applyMaxLanguageGrouping(languages, maxLanguages) {
+  if (languages.length <= maxLanguages) return mergeOtherBucket(languages);
+  if (maxLanguages === 1) {
+    return [{ language: OTHER_LANGUAGE, value: languages.reduce((sum, item) => sum + item.value, 0) }];
+  }
+
+  const named = languages.filter(({ language }) => language !== OTHER_LANGUAGE);
+  const otherValue = languages
+    .filter(({ language }) => language === OTHER_LANGUAGE)
+    .reduce((sum, item) => sum + item.value, 0);
+  const keep = named.slice(0, maxLanguages - 1);
+  const grouped = named.slice(maxLanguages - 1);
+  const groupedValue = grouped.reduce((sum, item) => sum + item.value, otherValue);
+
+  return mergeOtherBucket([...keep, { language: OTHER_LANGUAGE, value: groupedValue }]);
 }
 
 async function collectLanguageByteTotals(headers, repos) {
@@ -542,6 +631,7 @@ export function optionsFromEnv(env = process.env) {
     includeForks: parseBoolean(env.GITSTATS_INCLUDE_FORKS),
     includeArchived: parseBoolean(env.GITSTATS_INCLUDE_ARCHIVED),
     includeProfileRepo: parseBoolean(env.GITSTATS_INCLUDE_PROFILE_REPO),
+    grouping: Object.hasOwn(env, "GITSTATS_GROUPING") ? parseStrictBoolean(env.GITSTATS_GROUPING) : true,
     showValues: parseBoolean(env.GITSTATS_SHOW_VALUES || "true"),
     affiliation: env.GITSTATS_AFFILIATION || "owner",
     visibility: env.GITSTATS_VISIBILITY || "all",
@@ -563,6 +653,7 @@ function mergeConfig(options, readmeConfig) {
     includeForks: readmeConfig["include-forks"] ?? options.includeForks,
     includeArchived: readmeConfig["include-archived"] ?? options.includeArchived,
     includeProfileRepo: readmeConfig["include-profile-repo"] ?? options.includeProfileRepo,
+    grouping: readmeConfig.grouping ?? options.grouping,
     showValues: readmeConfig["show-values"] ?? options.showValues,
     affiliation: readmeConfig.affiliation ?? options.affiliation,
     visibility: readmeConfig.visibility ?? options.visibility,
@@ -611,6 +702,9 @@ export function validateOptions(options) {
   }
   if (typeof options.showValues !== "boolean") {
     throw new Error("show-values must be true or false.");
+  }
+  if (typeof options.grouping !== "boolean") {
+    throw new Error("grouping must be true or false.");
   }
 
   if (!Array.isArray(options.hideLanguages)) {

@@ -24,7 +24,7 @@
     <rect x="255.98" y="54" width="122.21" height="10" fill="#3572A5" />
     <rect x="378.19" y="54" width="67.53" height="10" fill="#dea584" />
     <rect x="445.72" y="54" width="41.81" height="10" fill="#00ADD8" />
-    <rect x="487.53" y="54" width="14.47" height="10" fill="#89e051" />
+    <rect x="487.53" y="54" width="14.47" height="10" fill="#8b949e" />
   </g>
   <g transform="translate(18 92)">
       <circle cx="5" cy="-4" r="5" fill="#3178c6" />
@@ -47,8 +47,8 @@
       <text x="484" y="0" text-anchor="end" class="value">8.6% &#183; 260 changes</text>
     </g>
     <g transform="translate(18 204)">
-      <circle cx="5" cy="-4" r="5" fill="#89e051" />
-      <text x="18" y="0" class="name">Shell</text>
+      <circle cx="5" cy="-4" r="5" fill="#8b949e" />
+      <text x="18" y="0" class="name">Other</text>
       <text x="484" y="0" text-anchor="end" class="value">3.0% &#183; 90 changes</text>
     </g>
 </svg>

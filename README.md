@@ -103,7 +103,8 @@ gitstats:config -->
 | `style` | `normal` | `normal` renders the extended card with a list. `compact` renders a thicker labeled bar. |
 | `timeframe` | `all-time` | `all-time` uses GitHub language bytes. A number, such as `8`, uses recent commit changes from that many weeks. |
 | `show-values` | `true` | Shows byte or change totals in the normal renderer. Compact always shows percentages only. |
-| `max-languages` | `10` | Maximum number of languages to display before truncating. |
+| `grouping` | `true` | Groups the smallest languages into `Other` until the bucket is near 5%. |
+| `max-languages` | `10` | Maximum number of displayed entries, including `Other`. Overflow languages are grouped into `Other`. |
 | `hide-languages` | `HTML,CSS` | Comma-separated languages to exclude after loading all detected languages. |
 | `include-forks` | `false` | Includes forked repositories. |
 | `include-archived` | `false` | Includes archived repositories. |
@@ -112,6 +113,8 @@ gitstats:config -->
 | `visibility` | `all` | Repository visibility passed to GitHub. |
 
 The subtitle is always generated from `timeframe`: `all-time` for all-time renders, or `last N weeks` for numbered timeframes.
+
+Grouping is applied after hidden languages are removed. When `grouping: true`, GitStats groups the smallest languages into `Other` until that bucket is close to 5%, preferring a smaller bucket over pulling in a language that would push `Other` above 5.5%. If there are still more entries than `max-languages`, the lowest remaining entries are also merged into `Other`.
 
 ## Variants
 
@@ -178,7 +181,8 @@ README config blocks are recommended for display settings. Workflow inputs are s
 | `output` | `profile/languages.svg` | Output SVG path. |
 | `readme-config` | `README.md` | README path containing GitStats config blocks. Set to an empty string to disable README config. |
 | `config-name` | Empty | Named README config block to use, for example `most-used` or `recent`. |
-| `max-languages` | `10` | Maximum number of languages to display. |
+| `max-languages` | `10` | Maximum number of displayed entries, including `Other`. |
+| `grouping` | `true` | Group the smallest languages into `Other` until the bucket is near 5%. |
 | `hide-languages` | `HTML,CSS` | Languages to exclude after loading all detected languages. |
 | `include-forks` | `false` | Include forked repositories. |
 | `include-archived` | `false` | Include archived repositories. |
@@ -222,7 +226,7 @@ For fine-grained Personal Access Tokens:
 3. Chooses the metric from `timeframe`.
 4. For `timeframe: all-time`, reads GitHub language byte totals.
 5. For a numbered timeframe, reads commits since that many weeks ago and aggregates changed files by language.
-6. Applies `hide-languages` and `max-languages`.
+6. Applies `hide-languages`, dynamic grouping, and `max-languages`.
 7. Renders the selected SVG style.
 
 ## Notes

@@ -4,6 +4,7 @@ import { extname, isAbsolute, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   formatMetricValue,
+  groupAndRankLanguages,
   loadReadmeConfig,
   metricForTimeframe,
   parseTimeframe,
@@ -34,11 +35,14 @@ const previewSamples = {
 
 function applyPreviewConfig(languages, config) {
   const hide = new Set((config["hide-languages"] || ["HTML", "CSS"]).map((language) => language.toLowerCase()));
-  const maxLanguages = Number(config["max-languages"] || 10);
-
-  return languages
+  const filtered = languages
     .filter(({ language }) => !hide.has(language.toLowerCase()))
-    .slice(0, maxLanguages);
+    .map((language) => ({ ...language }));
+
+  return groupAndRankLanguages(filtered, {
+    grouping: config.grouping ?? true,
+    maxLanguages: Number(config["max-languages"] || 10),
+  });
 }
 
 async function previewData(timeframe) {

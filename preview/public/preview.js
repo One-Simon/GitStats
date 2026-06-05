@@ -8,6 +8,7 @@ const config = data.config || {};
 const configRows = [
   ["README timeframe", String(config.timeframe || "all-time")],
   ["README style", config.style || "normal"],
+  ["Grouping", String(config.grouping ?? true)],
   ["Show values", String(config["show-values"] ?? true)],
   ["All-time metric", "bytes"],
   ["Recent metric", "changes"],
