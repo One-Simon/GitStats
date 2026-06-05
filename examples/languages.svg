@@ -1,0 +1,51 @@
+<svg width="520" height="274" viewBox="0 0 520 274" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Example language statistics</title>
+  <desc id="desc">Example GitStats card with fake language usage values.</desc>
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+    .title { fill: #24292f; font-size: 18px; font-weight: 600; }
+    .meta { fill: #57606a; font-size: 12px; }
+    .name { fill: #24292f; font-size: 13px; font-weight: 600; }
+    .value { fill: #57606a; font-size: 12px; }
+    @media (prefers-color-scheme: dark) {
+      .title, .name { fill: #c9d1d9; }
+      .meta, .value { fill: #8b949e; }
+    }
+  </style>
+  <text x="24" y="30" class="title">Most Used Languages</text>
+  <text x="496" y="30" text-anchor="end" class="meta">example data</text>
+  <clipPath id="bar"><rect x="24" y="54" width="472" height="10" rx="5" /></clipPath>
+  <g clip-path="url(#bar)">
+    <rect x="24" y="54" width="472" height="10" fill="#d0d7de" />
+    <rect x="24" y="54" width="210.04" height="10" fill="#3178c6" />
+    <rect x="234.04" y="54" width="139.24" height="10" fill="#f1e05a" />
+    <rect x="373.28" y="54" width="61.36" height="10" fill="#3572A5" />
+    <rect x="434.64" y="54" width="37.76" height="10" fill="#00ADD8" />
+    <rect x="472.40" y="54" width="23.60" height="10" fill="#dea584" />
+  </g>
+  <g transform="translate(24 92)">
+    <circle cx="5" cy="-4" r="5" fill="#3178c6" />
+    <text x="18" y="0" class="name">TypeScript</text>
+    <text x="496" y="0" text-anchor="end" class="value">44.5% · 4.8 MB</text>
+  </g>
+  <g transform="translate(24 120)">
+    <circle cx="5" cy="-4" r="5" fill="#f1e05a" />
+    <text x="18" y="0" class="name">JavaScript</text>
+    <text x="496" y="0" text-anchor="end" class="value">29.5% · 3.2 MB</text>
+  </g>
+  <g transform="translate(24 148)">
+    <circle cx="5" cy="-4" r="5" fill="#3572A5" />
+    <text x="18" y="0" class="name">Python</text>
+    <text x="496" y="0" text-anchor="end" class="value">13.0% · 1.4 MB</text>
+  </g>
+  <g transform="translate(24 176)">
+    <circle cx="5" cy="-4" r="5" fill="#00ADD8" />
+    <text x="18" y="0" class="name">Go</text>
+    <text x="496" y="0" text-anchor="end" class="value">8.0% · 880.0 KB</text>
+  </g>
+  <g transform="translate(24 204)">
+    <circle cx="5" cy="-4" r="5" fill="#dea584" />
+    <text x="18" y="0" class="name">Rust</text>
+    <text x="496" y="0" text-anchor="end" class="value">5.0% · 540.0 KB</text>
+  </g>
+</svg>
