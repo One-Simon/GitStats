@@ -9,6 +9,7 @@ const configRows = [
   ["README timeframe", String(config.timeframe || "all-time")],
   ["README style", config.style || "normal"],
   ["Show values", String(config["show-values"] ?? true)],
+  ["SVG width", String(config["svg-width"] || 520)],
   ["All-time metric", "bytes"],
   ["Recent metric", "changes"],
   ["Hidden languages", (config["hide-languages"] || ["HTML", "CSS"]).join(", ")],

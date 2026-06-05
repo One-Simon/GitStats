@@ -73,6 +73,7 @@ style: normal
 timeframe: all-time
 show-values: true
 max-languages: 10
+svg-width: 520
 hide-languages: HTML,CSS
 include-forks: false
 include-archived: false
@@ -86,6 +87,7 @@ style: compact
 timeframe: 8
 show-values: true
 max-languages: 10
+svg-width: 520
 hide-languages: HTML,CSS
 include-forks: false
 include-archived: false
@@ -112,6 +114,7 @@ style: normal
 timeframe: all-time
 show-values: true
 max-languages: 10
+svg-width: 520
 hide-languages: HTML,CSS
 include-forks: false
 include-archived: false
@@ -127,6 +130,7 @@ gitstats:config -->
 | `timeframe` | `all-time`, or a number of weeks | `all-time` uses GitHub language bytes. A number, such as `8`, uses recent commit changes. |
 | `show-values` | `true`, `false` | Shows byte or change totals in the normal renderer. Compact always shows percentages only. |
 | `max-languages` | Positive number | Maximum number of languages to display before truncating. |
+| `svg-width` | Positive number | Intrinsic output SVG width in pixels. README `<img width="...">` still controls displayed size. |
 | `hide-languages` | Comma-separated languages | Excludes languages after loading all detected languages. Defaults to `HTML,CSS`. |
 | `include-forks` | `true`, `false` | Includes forked repositories. |
 | `include-archived` | `true`, `false` | Includes archived repositories. |
@@ -231,6 +235,7 @@ README config blocks are recommended for display settings. Workflow inputs are s
 | `timeframe` | `all-time` | `all-time` for language bytes, or a number of weeks for recent changes. |
 | `style` | `normal` | Rendering style. |
 | `show-values` | `true` | Show byte or change totals in the normal renderer. |
+| `svg-width` | `520` | Intrinsic output SVG width in pixels. |
 | `user-agent` | `GitStats-language-card` | User-Agent used for GitHub API requests. |
 
 ## Token Setup
@@ -271,6 +276,7 @@ For fine-grained Personal Access Tokens:
 
 - All-time numbers are GitHub language byte counts, not lines of code.
 - Recent numbers are commit file change counts, usually additions plus deletions. They show activity, not how much code exists in that language.
+- SVGs are vector graphics. Use `svg-width` for intrinsic output dimensions and README image width attributes for display size.
 - Recent language detection is based on changed file paths and extensions.
 - Private repository names and source code are not written to the SVG.
 - Generated SVGs are public if committed to a public repository.
