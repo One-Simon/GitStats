@@ -63,7 +63,7 @@ function sampleRows(languages, metric) {
   }));
 }
 
-function renderOptions(config, timeframe, style, metric, svgWidth) {
+function renderOptions(config, timeframe, style, metric) {
   const configTimeframe = config.timeframe ?? "all-time";
   const useConfiguredText = String(configTimeframe) === String(timeframe);
 
@@ -72,7 +72,6 @@ function renderOptions(config, timeframe, style, metric, svgWidth) {
     timeframe,
     metric,
     showValues: config["show-values"] ?? true,
-    svgWidth: svgWidth ?? config["svg-width"],
     title: useConfiguredText ? config.title : undefined,
     subtitle: useConfiguredText ? config.subtitle : undefined,
   };
@@ -119,13 +118,11 @@ const server = createServer(async (request, response) => {
   if (url.pathname === "/api/render.svg" || url.pathname === "/api/current.svg") {
     const style = url.searchParams.get("style") || "normal";
     const timeframe = parseTimeframe(url.searchParams.get("timeframe") || "all-time");
-    const svgWidthParam = url.searchParams.get("svg-width");
-    const svgWidth = svgWidthParam ? Number(svgWidthParam) : undefined;
     const { config, languages, metric, total } = await previewData(timeframe);
     send(
       response,
       200,
-      renderSvg(languages, total, renderOptions(config, timeframe, style, metric, svgWidth)),
+      renderSvg(languages, total, renderOptions(config, timeframe, style, metric)),
       "image/svg+xml; charset=utf-8",
     );
     return;

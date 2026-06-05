@@ -7,7 +7,6 @@ const README_CONFIG_END = "gitstats:config -->";
 const ALL_TIME = "all-time";
 const METRIC_BYTES = "bytes";
 const METRIC_CHANGES = "changes";
-const DEFAULT_SVG_WIDTH = 520;
 
 export function parseBoolean(value) {
   return String(value || "false").toLowerCase() === "true";
@@ -58,7 +57,7 @@ function parseCsv(value) {
 }
 
 function parseReadmeConfigValue(key, value) {
-  if (["max-languages", "svg-width"].includes(key)) return Number(value);
+  if (key === "max-languages") return Number(value);
   if (key === "timeframe") return parseTimeframe(value);
   if (["include-forks", "include-archived", "include-profile-repo", "show-values"].includes(key)) {
     return parseBoolean(value);
@@ -165,23 +164,14 @@ function normalizeRenderOptions(options) {
     timeframe,
     metric,
     showValues: options.showValues !== false,
-    svgWidth: options.svgWidth || DEFAULT_SVG_WIDTH,
     title: options.title || defaultTitle(timeframe),
     subtitle: options.subtitle || defaultSubtitle(timeframe),
   };
 }
 
-function outputSvgSize(baseWidth, baseHeight, options) {
-  const width = Math.round(options.svgWidth || baseWidth);
-  return {
-    width,
-    height: Math.round((baseHeight * width) / baseWidth),
-  };
-}
-
 function renderNormalSvg(languages, total, options) {
   const valueFormatter = options.valueFormatter || ((pct, value) => formatListValue(pct, value, options));
-  const width = DEFAULT_SVG_WIDTH;
+  const width = 520;
   const paddingX = 18;
   const contentWidth = width - paddingX * 2;
   const rowHeight = 28;
@@ -208,9 +198,7 @@ function renderNormalSvg(languages, total, options) {
     </g>`;
   }).join("\n    ");
 
-  const outputSize = outputSvgSize(width, height, options);
-
-  return `<svg width="${outputSize.width}" height="${outputSize.height}" viewBox="0 0 ${width} ${height}" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
   <title id="title">${escapeXml(options.title)}</title>
   <desc id="desc">${escapeXml(svgDescription(options.metric))}</desc>
   <style>
@@ -240,7 +228,7 @@ function renderNormalSvg(languages, total, options) {
 }
 
 function renderCompactSvg(languages, total, options) {
-  const width = DEFAULT_SVG_WIDTH;
+  const width = 520;
   const paddingX = 18;
   const contentWidth = width - paddingX * 2;
   const height = 150;
@@ -279,9 +267,7 @@ function renderCompactSvg(languages, total, options) {
     <text x="0" y="18" text-anchor="end" class="other-value">${((other.value / total) * 100).toFixed(1)}%</text>
   </g>` : "";
 
-  const outputSize = outputSvgSize(width, height, options);
-
-  return `<svg width="${outputSize.width}" height="${outputSize.height}" viewBox="0 0 ${width} ${height}" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
   <title id="title">${escapeXml(options.title)}</title>
   <desc id="desc">${escapeXml(svgDescription(options.metric))}</desc>
   <style>
@@ -562,7 +548,6 @@ export function optionsFromEnv(env = process.env) {
     title: env.GITSTATS_TITLE || "",
     subtitle: env.GITSTATS_SUBTITLE || "",
     style: (env.GITSTATS_STYLE || "normal").toLowerCase(),
-    svgWidth: Number(env.GITSTATS_SVG_WIDTH || DEFAULT_SVG_WIDTH),
     userAgent: env.GITSTATS_USER_AGENT || "GitStats-language-card",
     readmeConfigPath,
   };
@@ -576,7 +561,6 @@ function mergeConfig(options, readmeConfig) {
     style: readmeConfig.style ?? options.style,
     maxLanguages: readmeConfig["max-languages"] ?? options.maxLanguages,
     timeframe: readmeConfig.timeframe ?? options.timeframe,
-    svgWidth: readmeConfig["svg-width"] ?? options.svgWidth,
     hideLanguages: readmeConfig["hide-languages"] ?? options.hideLanguages,
     includeForks: readmeConfig["include-forks"] ?? options.includeForks,
     includeArchived: readmeConfig["include-archived"] ?? options.includeArchived,
@@ -629,10 +613,6 @@ export function validateOptions(options) {
   }
   if (typeof options.showValues !== "boolean") {
     throw new Error("show-values must be true or false.");
-  }
-
-  if (!Number.isFinite(options.svgWidth) || options.svgWidth < 1) {
-    throw new Error("svg-width must be a positive number.");
   }
 
   if (!Array.isArray(options.hideLanguages)) {

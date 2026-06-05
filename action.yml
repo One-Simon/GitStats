@@ -66,10 +66,6 @@ inputs:
     description: Show byte or change totals in the normal renderer. Compact always shows percentages only.
     required: false
     default: "true"
-  svg-width:
-    description: Intrinsic output SVG width in pixels. The height scales with the selected style.
-    required: false
-    default: "520"
   user-agent:
     description: User-Agent header for GitHub API requests.
     required: false
@@ -109,7 +105,6 @@ runs:
         GITSTATS_STYLE: ${{ inputs.style }}
         GITSTATS_TIMEFRAME: ${{ inputs.timeframe }}
         GITSTATS_SHOW_VALUES: ${{ inputs.show-values }}
-        GITSTATS_SVG_WIDTH: ${{ inputs.svg-width }}
         GITSTATS_USER_AGENT: ${{ inputs.user-agent }}
         GITSTATS_README_CONFIG: ${{ inputs.readme-config }}
         GITSTATS_CONFIG_NAME: ${{ inputs.config-name }}
