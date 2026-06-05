@@ -1,31 +1,22 @@
 # GitStats
 
-Generate a clean GitHub language statistics SVG for your profile README.
+Generate GitHub language stats SVGs for profile READMEs.
 
-I did not like the styling - nor the functionality of existing Graphics.
-Enjoy.
+GitStats can show both long-term language composition and recent language activity:
 
-## Preview
+- **Most Used Languages** uses GitHub language byte totals from the current repository state.
+- **Recent Languages** uses commit file change counts from a configurable number of weeks.
+- Both representations can render as **Extended** or **Compact** cards.
+- Settings can live in your README through named `gitstats:config` blocks.
 
-<p align="center">
-  <img src="./examples/languages.svg" alt="Example GitStats language card" />
-</p>
+## Quick Setup
 
-The preview above uses fake example numbers. When GitStats runs in your workflow, it generates the same style of SVG from your actual GitHub repository language data.
+This default template generates two cards:
 
-## What It Shows
+- Most Used Languages, Extended, all-time bytes.
+- Recent Languages, Compact, last 8 weeks of changes.
 
-- Top programming languages by GitHub language byte count
-- Percentages across all included repositories
-- Human-readable byte totals
-- A compact SVG card suitable for profile READMEs
-- Public and private repositories, if your token has access
-
-GitStats uses GitHub's official REST API and the same language data GitHub exposes through each repository's language endpoint.
-
-## Quick Start
-
-Add this workflow to the repository where you want the generated SVG to live. For GitHub profile READMEs, that is usually `YOUR_USERNAME/YOUR_USERNAME`.
+Add this workflow to the repository where the SVG files should be committed. For a GitHub profile README, that is usually `YOUR_USERNAME/YOUR_USERNAME`.
 
 ```yaml
 name: GitStats
@@ -46,20 +37,27 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Generate language stats
+      - name: Generate most used languages
         uses: One-Simon/GitStats@main
         with:
           token: ${{ secrets.GITSTATS_TOKEN }}
           username: YOUR_USERNAME
-          output: profile/languages.svg
-          max-languages: 10
-          hide-languages: HTML,CSS
+          output: profile/languages-most-used.svg
+          config-name: most-used
 
-      - name: Commit generated SVG
+      - name: Generate recent languages
+        uses: One-Simon/GitStats@main
+        with:
+          token: ${{ secrets.GITSTATS_TOKEN }}
+          username: YOUR_USERNAME
+          output: profile/languages-recent.svg
+          config-name: recent
+
+      - name: Commit generated SVGs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add profile/languages.svg
+          git add profile/languages-most-used.svg profile/languages-recent.svg
           git commit -m "Update language stats" || exit 0
           git push
 ```
@@ -67,22 +65,176 @@ jobs:
 Then add this to your `README.md`:
 
 ```md
+<!-- gitstats:config most-used
+title: Most Used Languages
+subtitle: all-time
+style: normal
+timeframe: all-time
+show-values: true
+max-languages: 10
+hide-languages: HTML,CSS
+include-forks: false
+include-archived: false
+include-profile-repo: false
+gitstats:config -->
+
+<!-- gitstats:config recent
+title: Recent Languages
+subtitle: last 8 weeks
+style: compact
+timeframe: 8
+show-values: true
+max-languages: 10
+hide-languages: HTML,CSS
+include-forks: false
+include-archived: false
+include-profile-repo: false
+gitstats:config -->
+
 <p align="center">
-  <img src="./profile/languages.svg" alt="Most used programming languages" />
+  <img width="100%" src="./profile/languages-most-used.svg" alt="Most used programming languages" />
+  <img width="100%" src="./profile/languages-recent.svg" alt="Recent programming languages" />
 </p>
 ```
 
-Run the workflow manually once from the Actions tab. After the first successful run, the SVG will be committed to your repository and shown in your README.
+Run the workflow once from the Actions tab. After the first successful run, the generated SVGs will be committed and displayed in your README.
 
-## Does It Have To Run In A Profile Repo?
+## Configuration
 
-No. GitStats can run in any repository where GitHub Actions is enabled and where the workflow token has permission to commit the generated SVG.
+GitStats reads settings from `gitstats:config` blocks in your README. Use `config-name` in the workflow to select which block should drive that action run.
 
-The profile repo is just the most common setup because GitHub displays `YOUR_USERNAME/YOUR_USERNAME`'s `README.md` on your profile. You can also use GitStats in a project repo, docs repo, organization profile repo, or any other repository where you want a generated language card.
+```md
+<!-- gitstats:config example-name
+title: Most Used Languages
+subtitle: all-time
+style: normal
+timeframe: all-time
+show-values: true
+max-languages: 10
+hide-languages: HTML,CSS
+include-forks: false
+include-archived: false
+include-profile-repo: false
+gitstats:config -->
+```
+
+| Setting | Values | Description |
+| --- | --- | --- |
+| `title` | Any text | Card title. |
+| `subtitle` | Any text | Small label in the top-right of the card. |
+| `style` | `normal`, `compact` | `normal` renders the extended card with a list. `compact` renders a thicker labeled bar. |
+| `timeframe` | `all-time`, or a number of weeks | `all-time` uses GitHub language bytes. A number, such as `8`, uses recent commit changes. |
+| `show-values` | `true`, `false` | Shows byte or change totals in the normal renderer. Compact always shows percentages only. |
+| `max-languages` | Positive number | Maximum number of languages to display before truncating. |
+| `hide-languages` | Comma-separated languages | Excludes languages after loading all detected languages. Defaults to `HTML,CSS`. |
+| `include-forks` | `true`, `false` | Includes forked repositories. |
+| `include-archived` | `true`, `false` | Includes archived repositories. |
+| `include-profile-repo` | `true`, `false` | Includes the `username/username` profile repository. |
+| `affiliation` | GitHub repo affiliation query | Defaults to `owner`. Use `owner,collaborator,organization_member` for broader access. |
+| `visibility` | `all`, `public`, `private` | Repository visibility passed to GitHub. |
+
+## Variants
+
+### Most Used Languages, Extended
+
+```md
+<!-- gitstats:config most-used-extended
+title: Most Used Languages
+subtitle: all-time
+style: normal
+timeframe: all-time
+show-values: true
+max-languages: 10
+hide-languages: HTML,CSS
+gitstats:config -->
+```
+
+<p align="center">
+  <img width="100%" src="./examples/most-used-extended.svg" alt="Most Used Languages extended example" />
+</p>
+
+### Most Used Languages, Compact
+
+```md
+<!-- gitstats:config most-used-compact
+title: Most Used Languages
+subtitle: all-time
+style: compact
+timeframe: all-time
+show-values: true
+max-languages: 10
+hide-languages: HTML,CSS
+gitstats:config -->
+```
+
+<p align="center">
+  <img width="100%" src="./examples/most-used-compact.svg" alt="Most Used Languages compact example" />
+</p>
+
+### Recent Languages, Extended
+
+```md
+<!-- gitstats:config recent-extended
+title: Recent Languages
+subtitle: last 8 weeks
+style: normal
+timeframe: 8
+show-values: true
+max-languages: 10
+hide-languages: HTML,CSS
+gitstats:config -->
+```
+
+<p align="center">
+  <img width="100%" src="./examples/recent-extended.svg" alt="Recent Languages extended example" />
+</p>
+
+### Recent Languages, Compact
+
+```md
+<!-- gitstats:config recent-compact
+title: Recent Languages
+subtitle: last 8 weeks
+style: compact
+timeframe: 8
+show-values: true
+max-languages: 10
+hide-languages: HTML,CSS
+gitstats:config -->
+```
+
+<p align="center">
+  <img width="100%" src="./examples/recent-compact.svg" alt="Recent Languages compact example" />
+</p>
+
+## Action Inputs
+
+README config blocks are recommended for display settings. Workflow inputs are still useful for secrets, output paths, and selecting a config block.
+
+| Input | Default | Description |
+| --- | --- | --- |
+| `token` | Required | GitHub token used to read repositories, language data, and recent commit data. |
+| `username` | Repository owner | GitHub username to generate stats for. |
+| `output` | `profile/languages.svg` | Output SVG path. |
+| `readme-config` | `README.md` | README path containing GitStats config blocks. Set to an empty string to disable README config. |
+| `config-name` | Empty | Named README config block to use, for example `most-used` or `recent`. |
+| `max-languages` | `10` | Maximum number of languages to display. |
+| `hide-languages` | `HTML,CSS` | Languages to exclude after loading all detected languages. |
+| `include-forks` | `false` | Include forked repositories. |
+| `include-archived` | `false` | Include archived repositories. |
+| `include-profile-repo` | `false` | Include the `username/username` profile repository. |
+| `affiliation` | `owner` | Repository affiliation passed to GitHub. |
+| `visibility` | `all` | Repository visibility passed to GitHub. |
+| `title` | Automatic | Card title if README config is disabled. |
+| `subtitle` | Automatic | Card subtitle if README config is disabled. |
+| `timeframe` | `all-time` | `all-time` for language bytes, or a number of weeks for recent changes. |
+| `style` | `normal` | Rendering style. |
+| `show-values` | `true` | Show byte or change totals in the normal renderer. |
+| `user-agent` | `GitStats-language-card` | User-Agent used for GitHub API requests. |
 
 ## Token Setup
 
-GitStats needs a Personal Access Token because the default `GITHUB_TOKEN` only has access to the repository running the workflow. A PAT lets GitStats list the repositories you want included in the aggregate language card.
+GitStats needs a Personal Access Token because the default `GITHUB_TOKEN` only has access to the repository running the workflow.
 
 Recommended secret name:
 
@@ -90,125 +242,37 @@ Recommended secret name:
 GITSTATS_TOKEN
 ```
 
-Recommended token permissions for classic Personal Access Tokens:
+For classic Personal Access Tokens:
 
 ```text
 repo
 read:user
 ```
 
-Use `repo` if you want private repositories included. For public repositories only, `public_repo` and `read:user` may be enough, depending on your account and repository access.
-
 For fine-grained Personal Access Tokens:
 
 - Set **Repository access** to the repositories you want included, or **All repositories**.
 - Set **Repository permissions -> Metadata** to **Read-only**.
-- No **Contents** permission is required by the current GitStats implementation.
+- For recent renders such as `timeframe: 8`, also set **Repository permissions -> Contents** to **Read-only**.
 - If the token is scoped to an organization with SSO, authorize the token for that organization.
-
-GitStats currently calls two GitHub REST endpoints: `GET /user/repos` and `GET /repos/{owner}/{repo}/languages`. GitHub documents both as compatible with fine-grained personal access tokens, and the languages endpoint requires only `Metadata: read` for private repository access.
-
-Add the secret in your profile repository:
-
-```text
-Settings -> Secrets and variables -> Actions -> New repository secret
-```
-
-The token is never written to the generated SVG or README. It is only used during the workflow run to read GitHub API data.
-
-## Inputs
-
-| Input | Default | Description |
-| --- | --- | --- |
-| `token` | required | GitHub token used to read repository and language data. |
-| `username` | workflow owner | GitHub username to generate stats for. |
-| `output` | `profile/languages.svg` | Output SVG path. |
-| `max-languages` | `10` | Maximum number of languages to display. |
-| `hide-languages` | `HTML,CSS` | Comma-separated languages to exclude. |
-| `include-forks` | `false` | Include forked repositories. |
-| `include-archived` | `false` | Include archived repositories. |
-| `include-profile-repo` | `false` | Include the `username/username` profile repo. |
-| `affiliation` | `owner` | Repository affiliation passed to `/user/repos`. |
-| `visibility` | `all` | Repository visibility passed to `/user/repos`: `all`, `public`, or `private`. |
-| `title` | `Most Used Languages` | Card title. |
-| `subtitle` | `public + private` | Small label in the top-right of the card. |
-| `user-agent` | `GitStats-language-card` | User-Agent used for GitHub API requests. |
-
-## Example: Public Repositories Only
-
-```yaml
-- name: Generate language stats
-  uses: One-Simon/GitStats@main
-  with:
-    token: ${{ secrets.GITSTATS_TOKEN }}
-    username: YOUR_USERNAME
-    visibility: public
-    subtitle: public repos
-```
-
-## Example: Include Forks
-
-```yaml
-- name: Generate language stats
-  uses: One-Simon/GitStats@main
-  with:
-    token: ${{ secrets.GITSTATS_TOKEN }}
-    username: YOUR_USERNAME
-    include-forks: true
-```
-
-## Example: Private Repositories Only
-
-```yaml
-- name: Generate language stats
-  uses: One-Simon/GitStats@main
-  with:
-    token: ${{ secrets.GITSTATS_TOKEN }}
-    username: YOUR_USERNAME
-    visibility: private
-    subtitle: private repos
-```
-
-## Example: Custom Card Text
-
-```yaml
-- name: Generate language stats
-  uses: One-Simon/GitStats@main
-  with:
-    token: ${{ secrets.GITSTATS_TOKEN }}
-    username: YOUR_USERNAME
-    title: Language Breakdown
-    subtitle: selected repos
-```
 
 ## How It Works
 
-1. Lists repositories visible to the token using GitHub's `/user/repos` endpoint.
-2. Filters repositories by owner, forks, archived status, and profile repo settings.
-3. Reads language byte counts from `/repos/{owner}/{repo}/languages`.
-4. Aggregates bytes by language.
-5. Renders a static SVG.
-6. Your workflow commits that SVG to your repository.
+1. Lists repositories visible to the token.
+2. Filters repositories by owner, forks, archived status, and profile repository settings.
+3. Chooses the metric from `timeframe`.
+4. For `timeframe: all-time`, reads GitHub language byte totals.
+5. For a numbered timeframe, reads commits since that many weeks ago and aggregates changed files by language.
+6. Applies `hide-languages` and `max-languages`.
+7. Renders the selected SVG style.
 
-GitHub calculates repository language statistics with Linguist. GitStats does not inspect your source code directly; it uses GitHub's already-calculated language data.
+## Notes
 
-## Notes And Limitations
-
-- The numbers are byte counts from GitHub's language API, not literal lines of code.
-- Hidden languages are removed before percentages are calculated.
-- Private repositories are included only if your token can read them.
-- The generated SVG is public if committed to a public repository, so it can reveal aggregate language usage from private repositories.
-- The SVG does not reveal private repository names or source code.
-
-## Security
-
-Do not commit tokens or secrets. Always pass tokens through GitHub Actions secrets:
-
-```yaml
-token: ${{ secrets.GITSTATS_TOKEN }}
-```
-
-For public profiles, consider whether aggregate private repository language stats are something you are comfortable showing publicly.
+- All-time numbers are GitHub language byte counts, not lines of code.
+- Recent numbers are commit file change counts, usually additions plus deletions. They show activity, not how much code exists in that language.
+- Recent language detection is based on changed file paths and extensions.
+- Private repository names and source code are not written to the SVG.
+- Generated SVGs are public if committed to a public repository.
 
 ## License
 
