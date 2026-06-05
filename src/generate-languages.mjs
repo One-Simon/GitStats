@@ -1,6 +1,8 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { execFile } from "node:child_process";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 
 const README_CONFIG_START = "<!-- gitstats:config";
 const README_CONFIG_END = "gitstats:config -->";
@@ -10,6 +12,11 @@ const METRIC_CHANGES = "changes";
 const OTHER_LANGUAGE = "Other";
 const GROUPING_TARGET_MIN = 0.045;
 const GROUPING_TARGET_MAX = 0.055;
+const GENERATED_OUTPUT_DIR = "profile";
+const GENERATED_COMMIT_MESSAGE = "Update language stats";
+const GIT_AUTHOR_NAME = "github-actions[bot]";
+const GIT_AUTHOR_EMAIL = "41898282+github-actions[bot]@users.noreply.github.com";
+const execFileAsync = promisify(execFile);
 
 export function parseBoolean(value) {
   return String(value || "false").toLowerCase() === "true";
@@ -79,16 +86,28 @@ function parseReadmeConfigValue(key, value) {
 }
 
 export function parseReadmeConfig(markdown) {
-  const configs = parseReadmeConfigs(markdown);
-  return configs.get("") || configs.values().next().value || {};
+  const configs = parseReadmeConfigEntries(markdown);
+  return configs.find(({ name }) => !name)?.config || configs[0]?.config || {};
 }
 
 export function parseReadmeConfigs(markdown) {
+  const entries = parseReadmeConfigEntries(markdown);
   const configs = new Map();
+
+  for (const entry of entries) {
+    configs.set(entry.key, entry.config);
+  }
+
+  return configs;
+}
+
+export function parseReadmeConfigEntries(markdown) {
+  markdown = withoutFencedCodeBlocks(markdown);
+  const configs = [];
   let searchStart = 0;
 
   while (true) {
-    const start = markdown.indexOf(README_CONFIG_START, searchStart);
+    const start = findNextConfigStart(markdown, searchStart);
     if (start === -1) return configs;
 
     const headerEnd = markdown.indexOf("\n", start);
@@ -100,9 +119,44 @@ export function parseReadmeConfigs(markdown) {
     const header = markdown.slice(start + README_CONFIG_START.length, headerEnd === -1 ? end : headerEnd).trim();
     const name = header.replace(/-->$/, "").trim().toLowerCase();
     const bodyStart = headerEnd === -1 || headerEnd > end ? start + README_CONFIG_START.length : headerEnd + 1;
-    configs.set(name, parseReadmeConfigBody(markdown.slice(bodyStart, end)));
+    const originalName = header.replace(/-->$/, "").trim();
+    configs.push({
+      name: originalName,
+      key: name,
+      config: parseReadmeConfigBody(markdown.slice(bodyStart, end)),
+    });
     searchStart = end + README_CONFIG_END.length;
   }
+}
+
+function findNextConfigStart(markdown, searchStart) {
+  let start = markdown.indexOf(README_CONFIG_START, searchStart);
+
+  while (start !== -1) {
+    const lineStart = markdown.lastIndexOf("\n", start - 1) + 1;
+    if (!markdown.slice(lineStart, start).trim()) return start;
+    start = markdown.indexOf(README_CONFIG_START, start + README_CONFIG_START.length);
+  }
+
+  return -1;
+}
+
+function withoutFencedCodeBlocks(markdown) {
+  let inFence = false;
+  let fenceChar = "";
+
+  return markdown.split(/\r?\n/).map((line) => {
+    const trimmed = line.trimStart();
+    const fence = trimmed.match(/^(```+|~~~+)/)?.[1];
+
+    if (fence && (!inFence || fence[0] === fenceChar)) {
+      inFence = !inFence;
+      fenceChar = inFence ? fence[0] : "";
+      return "";
+    }
+
+    return inFence ? "" : line;
+  }).join("\n");
 }
 
 function parseReadmeConfigBody(body) {
@@ -624,7 +678,6 @@ export function optionsFromEnv(env = process.env) {
   return {
     token: env.GITSTATS_TOKEN,
     username: env.GITSTATS_USERNAME,
-    output: env.GITSTATS_OUTPUT || "profile/languages.svg",
     maxLanguages,
     timeframe,
     hideLanguages: parseCsv(env.GITSTATS_HIDE_LANGUAGES || "HTML,CSS,JSON"),
@@ -632,6 +685,7 @@ export function optionsFromEnv(env = process.env) {
     includeArchived: parseBoolean(env.GITSTATS_INCLUDE_ARCHIVED),
     includeProfileRepo: parseBoolean(env.GITSTATS_INCLUDE_PROFILE_REPO),
     grouping: Object.hasOwn(env, "GITSTATS_GROUPING") ? parseStrictBoolean(env.GITSTATS_GROUPING) : true,
+    commit: Object.hasOwn(env, "GITSTATS_COMMIT") ? parseStrictBoolean(env.GITSTATS_COMMIT) : true,
     showValues: parseBoolean(env.GITSTATS_SHOW_VALUES || "true"),
     affiliation: env.GITSTATS_AFFILIATION || "owner",
     visibility: env.GITSTATS_VISIBILITY || "all",
@@ -671,6 +725,17 @@ export async function loadReadmeConfig(path) {
   }
 }
 
+export async function loadReadmeConfigEntries(path) {
+  if (!path) return [];
+
+  try {
+    return parseReadmeConfigEntries(await readFile(path, "utf8"));
+  } catch (error) {
+    if (error.code === "ENOENT") return [];
+    throw error;
+  }
+}
+
 export async function loadNamedReadmeConfig(path, name) {
   if (!path) return {};
   if (!name) return loadReadmeConfig(path);
@@ -706,22 +771,118 @@ export function validateOptions(options) {
   if (typeof options.grouping !== "boolean") {
     throw new Error("grouping must be true or false.");
   }
+  if (typeof options.commit !== "boolean") {
+    throw new Error("commit must be true or false.");
+  }
 
   if (!Array.isArray(options.hideLanguages)) {
     throw new Error("hide-languages must be a comma-separated language list.");
   }
 }
 
-export async function main(env = process.env) {
-  const envOptions = optionsFromEnv(env);
-  const readmeConfig = await loadNamedReadmeConfig(envOptions.readmeConfigPath, env.GITSTATS_CONFIG_NAME || "");
-  const options = mergeConfig(envOptions, readmeConfig);
-  validateOptions(options);
+function assertSafeOutputName(name) {
+  if (!name || name.includes("/") || name.includes("\\") || name === "." || name === "..") {
+    throw new Error(`Invalid GitStats config block name "${name}". Use a filename-safe block name without slashes.`);
+  }
+}
+
+function outputNameFromConfig(entry, options) {
+  if (entry.name) {
+    assertSafeOutputName(entry.name);
+    return entry.name;
+  }
+
+  const kind = isAllTime(options.timeframe) ? "MostUsed" : `Recent${options.timeframe}Weeks`;
+  return `GitStats-${kind}-${options.style}`;
+}
+
+function outputPathForConfig(entry, options, usedOutputPaths) {
+  const baseName = outputNameFromConfig(entry, options);
+  const basePath = `${GENERATED_OUTPUT_DIR}/${baseName}`;
+  const svgPath = basePath.toLowerCase().endsWith(".svg") ? basePath : `${basePath}.svg`;
+  let candidate = svgPath;
+  let index = 2;
+
+  while (usedOutputPaths.has(candidate)) {
+    candidate = svgPath.replace(/\.svg$/i, `-${index}.svg`);
+    index += 1;
+  }
+
+  usedOutputPaths.add(candidate);
+  return candidate;
+}
+
+async function writeGeneratedFilesOutput(paths, env) {
+  if (!env.GITHUB_OUTPUT) return;
+  await appendFile(env.GITHUB_OUTPUT, `generated-files<<EOF\n${paths.join("\n")}\nEOF\n`, "utf8");
+}
+
+async function git(args, options = {}) {
+  try {
+    return await execFileAsync("git", args, { encoding: "utf8", ...options });
+  } catch (error) {
+    const stderr = error.stderr ? `\n${error.stderr}` : "";
+    const stdout = error.stdout ? `\n${error.stdout}` : "";
+    throw new Error(`git ${args.join(" ")} failed.${stderr}${stdout}`);
+  }
+}
+
+async function gitStatusFor(paths) {
+  const { stdout } = await git(["status", "--porcelain", "--", ...paths]);
+  return stdout.trim();
+}
+
+async function commitGeneratedFiles(paths, shouldCommit) {
+  if (!shouldCommit || !paths.length) return;
+  if (!(await gitStatusFor(paths))) {
+    console.log("No generated SVG changes to commit.");
+    return;
+  }
+
+  await git(["config", "user.name", GIT_AUTHOR_NAME]);
+  await git(["config", "user.email", GIT_AUTHOR_EMAIL]);
+  await git(["add", "--", ...paths]);
+
+  const { stdout } = await git(["diff", "--cached", "--name-only", "--", ...paths]);
+  if (!stdout.trim()) {
+    console.log("No generated SVG changes to commit.");
+    return;
+  }
+
+  await git(["commit", "-m", GENERATED_COMMIT_MESSAGE, "--", ...paths]);
+  await git(["push"]);
+}
+
+async function writeLanguageSvg(options) {
   const { languages, metric, repos, total } = await generateLanguagesFromGithub(options);
   const outputDir = dirname(options.output);
   if (outputDir !== ".") await mkdir(outputDir, { recursive: true });
   await writeFile(options.output, renderSvg(languages, total, { ...options, metric }), "utf8");
   console.log(`Generated ${options.output} from ${repos.length} repositories using ${metric}.`);
+}
+
+export async function main(env = process.env) {
+  const envOptions = optionsFromEnv(env);
+  const readmeConfigs = await loadReadmeConfigEntries(envOptions.readmeConfigPath);
+  if (!readmeConfigs.length) {
+    throw new Error(
+      `No README GitStats config blocks found in ${envOptions.readmeConfigPath || "README.md"}. Add at least one <!-- gitstats:config --> block.`,
+    );
+  }
+
+  const usedOutputPaths = new Set();
+  const generatedFiles = [];
+
+  for (const entry of readmeConfigs) {
+    const options = mergeConfig(envOptions, entry.config);
+    options.output = outputPathForConfig(entry, options, usedOutputPaths);
+    validateOptions(options);
+    await writeLanguageSvg(options);
+    generatedFiles.push(options.output);
+  }
+
+  await writeGeneratedFilesOutput(generatedFiles, env);
+  await commitGeneratedFiles(generatedFiles, envOptions.commit);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

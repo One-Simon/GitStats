@@ -1,5 +1,5 @@
 name: GitStats
-description: Generate a GitHub language statistics SVG for profile READMEs, including private repositories when a token is provided.
+description: Generate configurable GitHub language statistics SVGs for profile READMEs, including private repositories when a token is provided.
 author: One-Simon
 
 branding:
@@ -14,16 +14,16 @@ inputs:
     description: GitHub username to generate stats for. Defaults to the repository owner.
     required: false
     default: ${{ github.repository_owner }}
-  output:
-    description: Output SVG path, relative to the workflow workspace.
-    required: false
-    default: profile/languages.svg
   max-languages:
     description: Maximum number of languages to display, including Other when lower-ranked languages are grouped.
     required: false
     default: "10"
   grouping:
     description: Group the smallest languages into Other until the bucket is near 5 percent.
+    required: false
+    default: "true"
+  commit:
+    description: Commit and push generated SVG changes using the workflow checkout credentials.
     required: false
     default: "true"
   hide-languages:
@@ -71,30 +71,27 @@ inputs:
     required: false
     default: GitStats-language-card
   readme-config:
-    description: README path containing an optional GitStats config block. Set to an empty string to disable README-based display configuration.
+    description: README path containing GitStats config blocks.
     required: false
     default: README.md
-  config-name:
-    description: Optional named README config block to use, for example most-used or recent.
-    required: false
-    default: ""
 
 outputs:
-  output:
-    description: Path to the generated SVG.
-    value: ${{ inputs.output }}
+  generated-files:
+    description: Newline-separated paths to the generated SVG files.
+    value: ${{ steps.generate.outputs.generated-files }}
 
 runs:
   using: composite
   steps:
     - name: Generate GitStats language SVG
+      id: generate
       shell: bash
       env:
         GITSTATS_TOKEN: ${{ inputs.token }}
         GITSTATS_USERNAME: ${{ inputs.username }}
-        GITSTATS_OUTPUT: ${{ inputs.output }}
         GITSTATS_MAX_LANGUAGES: ${{ inputs.max-languages }}
         GITSTATS_GROUPING: ${{ inputs.grouping }}
+        GITSTATS_COMMIT: ${{ inputs.commit }}
         GITSTATS_HIDE_LANGUAGES: ${{ inputs.hide-languages }}
         GITSTATS_INCLUDE_FORKS: ${{ inputs.include-forks }}
         GITSTATS_INCLUDE_ARCHIVED: ${{ inputs.include-archived }}
@@ -107,5 +104,4 @@ runs:
         GITSTATS_SHOW_VALUES: ${{ inputs.show-values }}
         GITSTATS_USER_AGENT: ${{ inputs.user-agent }}
         GITSTATS_README_CONFIG: ${{ inputs.readme-config }}
-        GITSTATS_CONFIG_NAME: ${{ inputs.config-name }}
       run: node "$GITHUB_ACTION_PATH/src/generate-languages.mjs"

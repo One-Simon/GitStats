@@ -21,18 +21,18 @@ This default setup generates two cards:
 
 Add this workflow to the repository where the SVG files should be committed. For a GitHub profile README, that is usually `YOUR_USERNAME/YOUR_USERNAME`.
 
-GitStats is published as a reusable GitHub Action, but users still need to add a workflow manually. The workflow decides when the action runs, passes the token and config name, and commits the generated SVG files back into the README repository.
+GitStats is published as a reusable GitHub Action, but users still need to add a workflow manually. The workflow decides when the action runs and grants write permission to the current repository. GitStats then reads the README config blocks, generates the SVG files, and commits changed SVGs automatically.
 
 ```yaml
 name: GitStats
 
 on:
-  schedule:
-    - cron: "0 0 * * *"
   workflow_dispatch:
   push:
     branches:
       - main
+    paths-ignore:
+      - "profile/*.svg"
 
 jobs:
   languages:
@@ -42,29 +42,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Generate most used languages
+      - name: Generate language stats
         uses: One-Simon/GitStats@main
         with:
           token: ${{ secrets.GITSTATS_TOKEN }}
           username: YOUR_USERNAME
-          output: profile/languages-most-used.svg
-          config-name: most-used
-
-      - name: Generate recent languages
-        uses: One-Simon/GitStats@main
-        with:
-          token: ${{ secrets.GITSTATS_TOKEN }}
-          username: YOUR_USERNAME
-          output: profile/languages-recent.svg
-          config-name: recent
-
-      - name: Commit generated SVGs
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add profile/languages-most-used.svg profile/languages-recent.svg
-          git commit -m "Update language stats" || exit 0
-          git push
 ```
 
 Then add the panel settings and image HTML to your `README.md`.
@@ -80,7 +62,7 @@ timeframe: all-time
 gitstats:config -->
 
 <div align="center">
-  <img width="100%" src="./profile/languages-most-used.svg" alt="Most used programming languages" />
+  <img width="100%" src="./profile/most-used.svg" alt="Most used programming languages" />
 </div>
 ```
 
@@ -93,7 +75,7 @@ timeframe: 8
 gitstats:config -->
 
 <div align="center">
-  <img width="100%" src="./profile/languages-recent.svg" alt="Recent programming languages" />
+  <img width="100%" src="./profile/recent.svg" alt="Recent programming languages" />
 </div>
 ```
 
@@ -101,9 +83,10 @@ Run the workflow once from the Actions tab. After the first successful run, the 
 
 ## Configuration
 
-GitStats reads settings from `gitstats:config` blocks in your README. Use `config-name` in the workflow to select which block should drive that action run.
+GitStats reads every `gitstats:config` block in your README and generates one SVG for each block.
 
 Only set the values you want to change. Omitted settings use the defaults below.
+Config blocks shown inside fenced code examples are ignored.
 
 ```md
 <!-- gitstats:config example-name
@@ -111,6 +94,10 @@ style: normal
 timeframe: all-time
 gitstats:config -->
 ```
+
+Named blocks write to `profile/{name}.svg`. For example, `<!-- gitstats:config most-used` writes `profile/most-used.svg`.
+
+Unnamed blocks are also supported. GitStats derives names from the settings, such as `profile/GitStats-MostUsed-normal.svg` or `profile/GitStats-Recent8Weeks-compact.svg`. If multiple blocks resolve to the same path, GitStats appends `-2`, `-3`, and so on.
 
 | Setting | Default | Description |
 | --- | --- | --- |
@@ -189,15 +176,14 @@ gitstats:config -->
 
 ## Action Inputs
 
-README config blocks are recommended for display settings. Workflow inputs are still useful for secrets, output paths, and selecting a config block.
+README config blocks drive SVG generation. Workflow inputs provide global defaults and automation behavior.
 
 | Input | Default | Description |
 | --- | --- | --- |
 | `token` | Required | GitHub token used to read repositories, language data, and recent commit data. |
 | `username` | Repository owner | GitHub username to generate stats for. |
-| `output` | `profile/languages.svg` | Output SVG path. |
-| `readme-config` | `README.md` | README path containing GitStats config blocks. Set to an empty string to disable README config. |
-| `config-name` | Empty | Named README config block to use, for example `most-used` or `recent`. |
+| `readme-config` | `README.md` | README path containing GitStats config blocks. |
+| `commit` | `true` | Commit and push changed generated SVGs using the workflow checkout credentials. |
 | `max-languages` | `10` | Maximum number of displayed entries, including `Other`. |
 | `grouping` | `true` | Group the smallest languages into `Other` until the bucket is near 5%. |
 | `hide-languages` | `HTML,CSS,JSON` | Languages to exclude after loading all detected languages. |
@@ -206,7 +192,7 @@ README config blocks are recommended for display settings. Workflow inputs are s
 | `include-profile-repo` | `false` | Include the `username/username` profile repository. |
 | `affiliation` | `owner` | Repository affiliation passed to GitHub. |
 | `visibility` | `all` | Repository visibility passed to GitHub. |
-| `title` | Automatic | Card title if README config is disabled. |
+| `title` | Automatic | Global card title fallback. README config blocks can override it per card. |
 | `timeframe` | `all-time` | `all-time` for language bytes, or a number of weeks for recent changes. |
 | `style` | `normal` | Rendering style. |
 | `show-values` | `true` | Show byte or change totals in the normal renderer. |
@@ -244,13 +230,14 @@ For fine-grained Personal Access Tokens:
 4. For `timeframe: all-time`, reads GitHub language byte totals.
 5. For a numbered timeframe, reads commits since that many weeks ago and aggregates changed files by language.
 6. Applies `hide-languages`, dynamic grouping, and `max-languages`.
-7. Renders the selected SVG style.
+7. Renders one SVG for every README config block.
+8. Commits changed generated SVGs when `commit: true`.
 
 ## Troubleshooting
 
 ### The workflow succeeded, but the README still shows the old card
 
-GitHub caches images rendered inside READMEs. Check the SVG file directly in the repository, for example `profile/languages-most-used.svg`. If that raw file is updated, the workflow worked and the README image cache should catch up after a little while.
+GitHub caches images rendered inside READMEs. Check the SVG file directly in the repository, for example `profile/most-used.svg`. If that raw file is updated, the workflow worked and the README image cache should catch up after a little while.
 
 ### The workflow fails with `API rate limit exceeded`
 
@@ -258,7 +245,7 @@ GitStats reads repository, language, and commit data through the GitHub API. Wai
 
 ### The card does not use my README config
 
-Make sure the workflow `config-name` matches the name in the README block exactly. For example, `config-name: most-used` must point to `<!-- gitstats:config most-used`. Also confirm the workflow uses `readme-config: README.md` or leaves that input at its default.
+Make sure the workflow uses `readme-config: README.md` or leaves that input at its default. Also check that the image path matches the config block name. For example, `<!-- gitstats:config most-used` writes to `profile/most-used.svg`.
 
 ## Notes
 
@@ -268,6 +255,7 @@ Make sure the workflow `config-name` matches the name in the README block exactl
 - Recent language detection is based on changed file paths and extensions.
 - Private repository names and source code are not written to the SVG.
 - Generated SVGs are public if committed to a public repository.
+- Automatic commits use the workflow `GITHUB_TOKEN` from `actions/checkout`, not the stats token.
 
 ## License
 

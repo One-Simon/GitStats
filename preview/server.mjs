@@ -34,7 +34,7 @@ const previewSamples = {
 };
 
 function applyPreviewConfig(languages, config) {
-  const hide = new Set((config["hide-languages"] || ["HTML", "CSS"]).map((language) => language.toLowerCase()));
+  const hide = new Set((config["hide-languages"] || ["HTML", "CSS", "JSON"]).map((language) => language.toLowerCase()));
   const filtered = languages
     .filter(({ language }) => !hide.has(language.toLowerCase()))
     .map((language) => ({ ...language }));

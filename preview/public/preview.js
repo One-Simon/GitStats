@@ -12,7 +12,7 @@ const configRows = [
   ["Show values", String(config["show-values"] ?? true)],
   ["All-time metric", "bytes"],
   ["Recent metric", "changes"],
-  ["Hidden languages", (config["hide-languages"] || ["HTML", "CSS"]).join(", ")],
+  ["Hidden languages", (config["hide-languages"] || ["HTML", "CSS", "JSON"]).join(", ")],
   ["Max languages", String(config["max-languages"] || 10)],
 ];
 
