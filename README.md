@@ -69,7 +69,7 @@ Run the workflow manually once from the Actions tab. After the first successful 
 
 ## Token Setup
 
-GitStats needs a token because the default `GITHUB_TOKEN` can only see the repository running the workflow. To include your own private repositories, create a Personal Access Token and store it as a repository secret.
+GitStats needs a Personal Access Token because the default `GITHUB_TOKEN` only has access to the repository running the workflow. A PAT lets GitStats list the repositories you want included in the aggregate language card.
 
 Recommended secret name:
 
@@ -77,14 +77,14 @@ Recommended secret name:
 GITSTATS_TOKEN
 ```
 
-Recommended token permissions:
-
-For classic Personal Access Tokens:
+Recommended token permissions for classic Personal Access Tokens:
 
 ```text
 repo
 read:user
 ```
+
+Use `repo` if you want private repositories included. For public repositories only, `public_repo` and `read:user` may be enough, depending on your account and repository access.
 
 For fine-grained Personal Access Tokens, grant access to the repositories you want included and allow read access to repository metadata/contents where applicable.
 
@@ -95,20 +95,6 @@ Settings -> Secrets and variables -> Actions -> New repository secret
 ```
 
 The token is never written to the generated SVG or README. It is only used during the workflow run to read GitHub API data.
-
-## Public Repositories Only
-
-If you only want public repository stats, you can use GitHub's default workflow token:
-
-```yaml
-- name: Generate language stats
-  uses: One-Simon/GitStats@main
-  with:
-    token: ${{ secrets.GITHUB_TOKEN }}
-    username: YOUR_USERNAME
-```
-
-For most profile use cases, a PAT is still recommended because it can see the full repository set you choose to expose in the aggregate stats.
 
 ## Inputs
 
@@ -127,6 +113,18 @@ For most profile use cases, a PAT is still recommended because it can see the fu
 | `title` | `Most Used Languages` | Card title. |
 | `subtitle` | `public + private` | Small label in the top-right of the card. |
 | `user-agent` | `GitStats-language-card` | User-Agent used for GitHub API requests. |
+
+## Example: Public Repositories Only
+
+```yaml
+- name: Generate language stats
+  uses: One-Simon/GitStats@main
+  with:
+    token: ${{ secrets.GITSTATS_TOKEN }}
+    username: YOUR_USERNAME
+    visibility: public
+    subtitle: public repos
+```
 
 ## Example: Include Forks
 
