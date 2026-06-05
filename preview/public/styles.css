@@ -68,44 +68,13 @@ h2 {
   gap: 16px;
 }
 
-.panel,
 .workspace article {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--panel);
 }
 
-.panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 72px;
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--border);
-}
-
-.status {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.status.muted {
-  background: var(--panel-muted);
-  color: var(--muted);
-}
-
 .svg-frame {
-  display: grid;
-  place-items: center;
-  padding: 24px;
   overflow: auto;
 }
 
