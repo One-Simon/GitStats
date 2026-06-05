@@ -78,6 +78,13 @@ Managed display section:
 <!-- gitstats:display -->
 ```
 
+For split layouts, add a config block name to the display markers. A named display block renders only that one named card:
+
+```md
+<!-- gitstats:display most-used -->
+<!-- gitstats:display most-used -->
+```
+
 Run the workflow once from the Actions tab. After the first successful run, the generated SVGs will be committed and displayed in your README.
 
 ## Configuration
@@ -86,7 +93,7 @@ GitStats reads every `gitstats:config` block in your README and generates one SV
 
 Only set the values you want to change. Omitted settings use the defaults below.
 Config blocks shown inside fenced code examples are ignored.
-Add exactly one display section with two `<!-- gitstats:display -->` markers. GitStats rewrites the content between those markers with matching image tags for all generated SVGs.
+Add display sections with paired `<!-- gitstats:display -->` markers. An unnamed display section renders all generated cards. A named display section, such as `<!-- gitstats:display most-used -->`, renders only the matching named config block. GitStats rewrites the content between the markers with matching image tags.
 
 ```md
 <!-- gitstats:config example-name
@@ -252,7 +259,7 @@ Make sure the workflow uses `readme-config: README.md` or leaves that input at i
 
 ### The workflow cannot find a display block
 
-Add exactly two `<!-- gitstats:display -->` markers to your README. GitStats needs those markers to know where it may write the generated image HTML.
+Add paired `<!-- gitstats:display -->` markers to your README. GitStats needs those markers to know where it may write the generated image HTML. If you use a named display block, make sure the name matches a named `gitstats:config` block.
 
 ## Notes
 
@@ -263,7 +270,7 @@ Add exactly two `<!-- gitstats:display -->` markers to your README. GitStats nee
 - Private repository names and source code are not written to the SVG.
 - Generated SVGs are public if committed to a public repository.
 - Automatic commits use the workflow `GITHUB_TOKEN` from `actions/checkout`, not the stats token.
-- GitStats only rewrites content between the two `gitstats:display` markers.
+- GitStats only rewrites content between paired `gitstats:display` markers.
 
 ## License
 

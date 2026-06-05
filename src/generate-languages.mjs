@@ -142,6 +142,13 @@ function findNextConfigStart(markdown, searchStart) {
   return -1;
 }
 
+function parseDisplayMarker(line) {
+  const match = line.trim().match(/^<!--\s*gitstats:display(?:\s+(.+?))?\s*-->$/);
+  if (!match) return null;
+  const name = (match[1] || "").trim();
+  return { name, key: name.toLowerCase() };
+}
+
 function findDisplayMarkers(markdown) {
   const markers = [];
   let inFence = false;
@@ -159,8 +166,9 @@ function findDisplayMarkers(markdown) {
     if (fence && (!inFence || fence[0] === fenceChar)) {
       inFence = !inFence;
       fenceChar = inFence ? fence[0] : "";
-    } else if (!inFence && line.trim() === README_DISPLAY_MARKER) {
-      markers.push({ start: offset, end: offset + rawLine.length });
+    } else if (!inFence) {
+      const marker = parseDisplayMarker(line);
+      if (marker) markers.push({ ...marker, start: offset, end: offset + rawLine.length });
     }
 
     offset += rawLine.length;
@@ -860,28 +868,68 @@ function renderDisplayHtml(cards) {
   ].join("\n");
 }
 
-function readmeDisplayMarkers(markdown) {
+function cardsForDisplayBlock(block, cards) {
+  if (!block.key) return cards;
+
+  const matches = cards.filter((card) => card.key === block.key);
+  if (!matches.length) {
+    throw new Error(`README GitStats display block "${block.name}" does not match any named gitstats config block.`);
+  }
+  if (matches.length > 1) {
+    throw new Error(`README GitStats display block "${block.name}" matches multiple gitstats config blocks. Use unique block names.`);
+  }
+  return matches;
+}
+
+function validateDisplayBlockReferences(blocks, configEntries) {
+  for (const block of blocks) {
+    if (!block.key) continue;
+    const matches = configEntries.filter((entry) => entry.key === block.key);
+    if (!matches.length) {
+      throw new Error(`README GitStats display block "${block.name}" does not match any named gitstats config block.`);
+    }
+    if (matches.length > 1) {
+      throw new Error(`README GitStats display block "${block.name}" matches multiple gitstats config blocks. Use unique block names.`);
+    }
+  }
+}
+
+function readmeDisplayBlocks(markdown) {
   const markers = findDisplayMarkers(markdown);
 
   if (!markers.length) {
     throw new Error(`README GitStats display block was not found. Add two ${README_DISPLAY_MARKER} markers where the generated cards should appear.`);
   }
-  if (markers.length === 1) {
-    throw new Error(`README GitStats display block needs a closing ${README_DISPLAY_MARKER} marker.`);
-  }
-  if (markers.length > 2) {
-    throw new Error(`README GitStats display block is ambiguous. Use exactly two ${README_DISPLAY_MARKER} markers.`);
+  if (markers.length % 2 !== 0) {
+    throw new Error(`README GitStats display block needs a closing display marker.`);
   }
 
-  return markers;
+  const blocks = [];
+  for (let index = 0; index < markers.length; index += 2) {
+    const open = markers[index];
+    const close = markers[index + 1];
+    if (open.key !== close.key) {
+      throw new Error(`README GitStats display block markers must match. Found "${open.name || "all"}" followed by "${close.name || "all"}".`);
+    }
+    blocks.push({ name: open.name, key: open.key, start: open.start, openEnd: open.end, end: close.end, closeStart: close.start });
+  }
+
+  return blocks;
 }
 
 function replaceReadmeDisplay(markdown, cards) {
-  const markers = readmeDisplayMarkers(markdown);
+  const blocks = readmeDisplayBlocks(markdown);
 
   const eol = eolFor(markdown);
-  const displayHtml = renderDisplayHtml(cards).replaceAll("\n", eol);
-  return `${markdown.slice(0, markers[0].end)}${displayHtml}${eol}${markdown.slice(markers[1].start)}`;
+  let updated = markdown;
+
+  for (const block of [...blocks].reverse()) {
+    const selectedCards = cardsForDisplayBlock(block, cards);
+    const displayHtml = renderDisplayHtml(selectedCards).replaceAll("\n", eol);
+    updated = `${updated.slice(0, block.openEnd)}${displayHtml}${eol}${updated.slice(block.closeStart)}`;
+  }
+
+  return updated;
 }
 
 async function updateReadmeDisplay(path, markdown, cards) {
@@ -949,7 +997,8 @@ export async function main(env = process.env) {
       `No README GitStats config blocks found in ${envOptions.readmeConfigPath || "README.md"}. Add at least one <!-- gitstats:config --> block.`,
     );
   }
-  readmeDisplayMarkers(readmeMarkdown);
+  const displayBlocks = readmeDisplayBlocks(readmeMarkdown);
+  validateDisplayBlockReferences(displayBlocks, readmeConfigs);
 
   const usedOutputPaths = new Set();
   const generatedFiles = [];
@@ -961,7 +1010,7 @@ export async function main(env = process.env) {
     validateOptions(options);
     await writeLanguageSvg(options);
     generatedFiles.push(options.output);
-    generatedCards.push({ output: options.output, options });
+    generatedCards.push({ key: entry.key, name: entry.name, output: options.output, options });
   }
 
   const updatedReadme = await updateReadmeDisplay(envOptions.readmeConfigPath, readmeMarkdown, generatedCards);
