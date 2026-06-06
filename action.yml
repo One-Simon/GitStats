@@ -1,5 +1,5 @@
-name: GitStats
-description: Generate configurable GitHub language statistics SVGs for profile READMEs, including private repositories when a token is provided.
+name: README Language Cards
+description: Generate configurable language stats SVG cards for GitHub profile READMEs.
 author: One-Simon
 
 branding:
