@@ -1,27 +1,47 @@
 # GitStats
 
+<p align="center">
+  <img src="https://img.shields.io/badge/GitHub%20Action-README%20driven-0969da?style=for-the-badge&logo=githubactions&logoColor=white" alt="README driven GitHub Action" />
+  <img src="https://img.shields.io/badge/Stats-All--time%20and%20recent-2da44e?style=for-the-badge" alt="All-time and recent stats" />
+  <img src="https://img.shields.io/badge/Styles-Normal%20and%20compact-a371f7?style=for-the-badge" alt="Normal and compact styles" />
+</p>
+
 Generate configurable GitHub language stats SVGs for profile READMEs.
 
-GitStats is a configurable stats viewer for language usage and recent language activity:
+GitStats is a README-driven stats viewer. Add config blocks, add display markers, and the action generates SVG cards, writes the image tags into your README, and commits the result.
 
-- Choose the data timeframe: `all-time` language bytes or a recent number of weeks.
-- Choose the display style: `normal` with a list, or `compact` with a labeled bar.
-- Hide languages, group small entries into `Other`, cap the number of displayed rows, and control value display from README config blocks.
-- Generated SVGs include internal horizontal padding and a subtle card background that remains distinct from GitHub's page background in light and dark mode.
+<p align="center">
+  <img width="100%" src="./examples/most-used-extended.svg" alt="GitStats normal language example" />
+</p>
+
+## At a Glance
+
+| Feature | What it does |
+| --- | --- |
+| README-driven config | Every `gitstats:config` block generates one SVG card. |
+| Managed display | Paired `gitstats:display` markers are replaced with generated `<img>` tags. |
+| Flexible timeframe | Use `all-time` language bytes or a recent number of weeks. |
+| Two render styles | `normal` shows a bar and list. `compact` shows a labeled bar. |
+| Language cleanup | Hide languages, group small entries into `Other`, and cap visible entries. |
+| Automatic commits | Generated SVGs and README display updates are committed when `commit: true`. |
 
 > [!IMPORTANT]
-> GitHub may cache README images for a short while after the workflow updates the SVG files. If the raw SVG file is correct but the README still shows the old card, please wait a bit and refresh later.
+> GitHub may cache README images for a short while after the workflow updates the SVG files. If the raw SVG file is correct but the README still shows the old card, wait a bit and refresh later.
 
 ## Quick Setup
 
-This default setup generates two cards:
+This setup creates the default pair:
 
-- Most Used Languages, normal style, all-time bytes.
-- Recent Languages, compact style, last 8 weeks of changes.
+| Card | Style | Timeframe | Output |
+| --- | --- | --- | --- |
+| Most Used Languages | `normal` | `all-time` | `profile/most-used.svg` |
+| Recent Languages | `compact` | `8` weeks | `profile/recent.svg` |
+
+### 1. Add the Workflow
 
 Add this workflow to the repository where the SVG files should be committed. For a GitHub profile README, that is usually `YOUR_USERNAME/YOUR_USERNAME`.
 
-GitStats is published as a reusable GitHub Action, but users still need to add a workflow manually. The workflow decides when the action runs and grants write permission to the current repository. GitStats then reads the README config blocks, generates the SVG files, updates the managed display section, and commits changed files automatically.
+GitStats is published as a reusable GitHub Action, but users still need to add a workflow manually. The workflow decides when the action runs and grants write permission to the current repository. GitStats then reads README config blocks, generates SVG files, updates managed display sections, and commits changed files automatically.
 
 ```yaml
 name: GitStats
@@ -49,30 +69,25 @@ jobs:
           username: YOUR_USERNAME
 ```
 
-Then add the panel settings and display placeholder to your `README.md`.
+### 2. Add Config Blocks
 
-The omitted settings below use the defaults, including `hide-languages: HTML,CSS,JSON`, `grouping: true`, and `max-languages: 10`.
-The block names become the SVG file names, so these two examples generate `profile/most-used.svg` and `profile/recent.svg`.
-
-Most Used Languages:
+Only set the values you want to change. The omitted defaults include `hide-languages: HTML,CSS,JSON`, `grouping: true`, and `max-languages: 10`.
 
 ```md
 <!-- gitstats:config most-used
 style: normal
 timeframe: all-time
 gitstats:config -->
-```
 
-Recent Languages:
-
-```md
 <!-- gitstats:config recent
 style: compact
 timeframe: 8
 gitstats:config -->
 ```
 
-Managed display section:
+The block names become the SVG file names. These examples generate `profile/most-used.svg` and `profile/recent.svg`.
+
+### 3. Add a Display Section
 
 ```md
 <div align="center">
@@ -81,7 +96,7 @@ Managed display section:
 </div>
 ```
 
-GitStats rewrites the content between the display markers with the generated image tags. You do not need to add SVG paths or `<img>` tags yourself. The surrounding `<div>` is yours, so you can center the cards, place them in a table, or use any other README layout GitHub supports.
+GitStats rewrites the content between the display markers with generated image tags. You do not need to add SVG paths or `<img>` tags yourself. The surrounding `<div>` is yours, so you can center the cards, place them in a table, or use any other README layout GitHub supports.
 
 For split layouts, add a config block name to the display markers. A named display block renders only that one named card. Config block names used for display sections must be unique:
 
@@ -92,15 +107,16 @@ For split layouts, add a config block name to the display markers. A named displ
 </div>
 ```
 
+### 4. Run Once
+
 Run the workflow once from the Actions tab. After the first successful run, the generated SVGs will be committed and displayed in your README.
+
+> [!TIP]
+> To change a card later, edit the matching `gitstats:config` block and rerun the workflow. Avoid editing generated content between display markers.
 
 ## Configuration
 
 GitStats reads every `gitstats:config` block in your README and generates one SVG for each block.
-
-Only set the values you want to change. Omitted settings use the defaults below.
-Config blocks shown inside fenced code examples are ignored.
-Add display sections with paired `<!-- gitstats:display -->` markers. An unnamed display section renders all generated cards in config order. A named display section, such as `<!-- gitstats:display most-used -->`, renders only the matching named config block. GitStats rewrites only the content between the markers, and it injects only image tags plus spacing. Put the markers inside the README layout you want, such as `<div align="center">`. Do not edit the generated content between the markers; change the config blocks instead and rerun the workflow.
 
 ```md
 <!-- gitstats:config example-name
@@ -109,11 +125,37 @@ timeframe: all-time
 gitstats:config -->
 ```
 
-Named blocks write to `profile/{name}.svg`. For example, `<!-- gitstats:config most-used` writes `profile/most-used.svg`, and a matching `<!-- gitstats:display most-used -->` section displays that card.
+### Generated Paths
 
-Unnamed blocks are also supported. GitStats derives names from the settings, such as `profile/GitStats-MostUsed-normal.svg` or `profile/GitStats-Recent8Weeks-compact.svg`. If multiple blocks resolve to the same path, GitStats appends `-2`, `-3`, and so on.
+| Config type | Output path |
+| --- | --- |
+| Named block, such as `most-used` | `profile/most-used.svg` |
+| Unnamed all-time normal block | `profile/GitStats-MostUsed-normal.svg` |
+| Unnamed recent compact block with `timeframe: 8` | `profile/GitStats-Recent8Weeks-compact.svg` |
+| Duplicate generated path | GitStats appends `-2`, `-3`, and so on. |
 
-When you add, remove, rename, or reorder config blocks, rerun the workflow. GitStats regenerates the SVGs and updates the managed display section automatically when `commit: true`.
+Named display sections use the same name as the config block. For example, `<!-- gitstats:display most-used -->` displays the card generated by `<!-- gitstats:config most-used`.
+
+### Display Markers
+
+| Marker | Behavior |
+| --- | --- |
+| `<!-- gitstats:display -->` | Displays all generated cards in config order. |
+| `<!-- gitstats:display most-used -->` | Displays only the matching named config block. |
+
+Display markers should be paired. GitStats rewrites only the content between the markers, and it injects only image tags plus spacing. Put layout HTML outside the markers.
+
+```md
+<div align="center">
+<!-- gitstats:display -->
+<!-- gitstats:display -->
+</div>
+```
+
+> [!NOTE]
+> Config and display examples inside fenced code blocks are ignored, so documentation examples do not accidentally generate cards.
+
+### Settings
 
 | Setting | Default | Description |
 | --- | --- | --- |
@@ -136,9 +178,9 @@ The subtitle is always generated from `timeframe`: `all-time` for all-time rende
 
 Grouping is applied after hidden languages are removed. When `grouping: true`, GitStats groups the smallest languages into `Other` until that bucket is close to 5%, preferring a smaller bucket over pulling in a language that would push `Other` above 5.5%. If there are still more entries than `max-languages`, the lowest remaining entries are also merged into `Other`.
 
-## Configuration Examples
+## Examples
 
-These are example configurations for the same stats viewer. Mix `style`, `timeframe`, and the other settings however you want.
+Mix `style`, `timeframe`, and the other settings however you want. These four examples are the same configurable viewer with different settings.
 
 ### All-Time, Normal
 
@@ -254,19 +296,19 @@ For fine-grained Personal Access Tokens:
 
 ## Troubleshooting
 
-### The workflow succeeded, but the README still shows the old card
+### The Workflow Succeeded, but the README Still Shows the Old Card
 
 GitHub caches images rendered inside READMEs. Check the SVG file directly in the repository, for example `profile/most-used.svg`. If that raw file is updated, the workflow worked and the README image cache should catch up after a little while.
 
-### The workflow fails with `API rate limit exceeded`
+### The Workflow Fails With `API Rate Limit Exceeded`
 
 GitStats reads repository, language, and commit data through the GitHub API. Wait until the rate limit resets, then rerun the workflow from the Actions tab. Recent cards can use more requests than all-time cards because they inspect commits and changed files inside the selected timeframe.
 
-### The card does not use my README config
+### The Card Does Not Use My README Config
 
 Make sure the workflow uses `readme-config: README.md` or leaves that input at its default. Config blocks inside fenced code examples are ignored, so active blocks should live directly in the README body.
 
-### The workflow cannot find a display block
+### The Workflow Cannot Find a Display Block
 
 Add paired `<!-- gitstats:display -->` markers to your README. GitStats needs those markers to know where it may write the generated image HTML. If you use a named display block, make sure the name matches a named `gitstats:config` block.
 
