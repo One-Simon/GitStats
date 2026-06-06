@@ -168,7 +168,15 @@ function findDisplayMarkers(markdown) {
       fenceChar = inFence ? fence[0] : "";
     } else if (!inFence) {
       const marker = parseDisplayMarker(line);
-      if (marker) markers.push({ ...marker, start: offset, end: offset + rawLine.length });
+      if (marker) {
+        markers.push({
+          ...marker,
+          line,
+          start: offset,
+          end: offset + rawLine.length,
+          hasLineBreak: /\r?\n$/.test(rawLine),
+        });
+      }
     }
 
     offset += rawLine.length;
@@ -855,17 +863,11 @@ function eolFor(markdown) {
 }
 
 function renderDisplayHtml(cards) {
-  const imageHtml = cards.map(({ output, options }) => {
+  return cards.map(({ output, options }) => {
     const width = options["display-width"] || "100%";
     const alt = options["display-alt"] || options.title || defaultTitle(options.timeframe);
     return `  <img width="${escapeXml(width)}" src="./${escapeXml(output)}" alt="${escapeXml(alt)}" />`;
-  });
-
-  return [
-    '<div align="center">',
-    imageHtml.join("\n  <br />\n  <br />\n"),
-    "</div>",
-  ].join("\n");
+  }).join("\n  <br />\n  <br />\n");
 }
 
 function cardsForDisplayBlock(block, cards) {
@@ -900,6 +902,20 @@ function readmeDisplayBlocks(markdown) {
   if (!markers.length) {
     throw new Error(`README GitStats display block was not found. Add two ${README_DISPLAY_MARKER} markers where the generated cards should appear.`);
   }
+  if (markers.length === 1) {
+    const marker = markers[0];
+    return [{
+      name: marker.name,
+      key: marker.key,
+      start: marker.start,
+      openEnd: marker.end,
+      openHasLineBreak: marker.hasLineBreak,
+      end: marker.end,
+      closeStart: marker.end,
+      closeMarker: marker.line,
+      single: true,
+    }];
+  }
   if (markers.length % 2 !== 0) {
     throw new Error(`README GitStats display block needs a closing display marker.`);
   }
@@ -911,7 +927,15 @@ function readmeDisplayBlocks(markdown) {
     if (open.key !== close.key) {
       throw new Error(`README GitStats display block markers must match. Found "${open.name || "all"}" followed by "${close.name || "all"}".`);
     }
-    blocks.push({ name: open.name, key: open.key, start: open.start, openEnd: open.end, end: close.end, closeStart: close.start });
+    blocks.push({
+      name: open.name,
+      key: open.key,
+      start: open.start,
+      openEnd: open.end,
+      openHasLineBreak: open.hasLineBreak,
+      end: close.end,
+      closeStart: close.start,
+    });
   }
 
   return blocks;
@@ -926,7 +950,9 @@ function replaceReadmeDisplay(markdown, cards) {
   for (const block of [...blocks].reverse()) {
     const selectedCards = cardsForDisplayBlock(block, cards);
     const displayHtml = renderDisplayHtml(selectedCards).replaceAll("\n", eol);
-    updated = `${updated.slice(0, block.openEnd)}${displayHtml}${eol}${updated.slice(block.closeStart)}`;
+    const afterOpen = block.openHasLineBreak ? "" : eol;
+    const closeMarker = block.single ? `${block.closeMarker}${eol}` : "";
+    updated = `${updated.slice(0, block.openEnd)}${afterOpen}${displayHtml}${eol}${closeMarker}${updated.slice(block.closeStart)}`;
   }
 
   return updated;

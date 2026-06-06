@@ -74,15 +74,19 @@ gitstats:config -->
 Managed display section:
 
 ```md
+<div align="center">
 <!-- gitstats:display -->
 <!-- gitstats:display -->
+</div>
 ```
 
 For split layouts, add a config block name to the display markers. A named display block renders only that one named card:
 
 ```md
+<div align="center">
 <!-- gitstats:display most-used -->
 <!-- gitstats:display most-used -->
+</div>
 ```
 
 Run the workflow once from the Actions tab. After the first successful run, the generated SVGs will be committed and displayed in your README.
@@ -93,7 +97,7 @@ GitStats reads every `gitstats:config` block in your README and generates one SV
 
 Only set the values you want to change. Omitted settings use the defaults below.
 Config blocks shown inside fenced code examples are ignored.
-Add display sections with paired `<!-- gitstats:display -->` markers. An unnamed display section renders all generated cards. A named display section, such as `<!-- gitstats:display most-used -->`, renders only the matching named config block. GitStats rewrites the content between the markers with matching image tags.
+Add display sections with paired `<!-- gitstats:display -->` markers. An unnamed display section renders all generated cards. A named display section, such as `<!-- gitstats:display most-used -->`, renders only the matching named config block. GitStats rewrites the content between the markers with matching image tags. Put the markers inside the README layout you want, such as `<div align="center">`.
 
 ```md
 <!-- gitstats:config example-name
