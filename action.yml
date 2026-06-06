@@ -23,7 +23,7 @@ inputs:
     required: false
     default: "true"
   commit:
-    description: Commit and push generated SVG changes using the workflow checkout credentials.
+    description: Commit and push generated SVG and README display changes using the workflow checkout credentials.
     required: false
     default: "true"
   hide-languages:

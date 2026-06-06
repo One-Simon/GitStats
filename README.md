@@ -52,6 +52,7 @@ jobs:
 Then add the panel settings and display placeholder to your `README.md`.
 
 The omitted settings below use the defaults, including `hide-languages: HTML,CSS,JSON`, `grouping: true`, and `max-languages: 10`.
+The block names become the SVG file names, so these two examples generate `profile/most-used.svg` and `profile/recent.svg`.
 
 Most Used Languages:
 
@@ -80,7 +81,9 @@ Managed display section:
 </div>
 ```
 
-For split layouts, add a config block name to the display markers. A named display block renders only that one named card:
+GitStats rewrites the content between the display markers with the generated image tags. You do not need to add SVG paths or `<img>` tags yourself. The surrounding `<div>` is yours, so you can center the cards, place them in a table, or use any other README layout GitHub supports.
+
+For split layouts, add a config block name to the display markers. A named display block renders only that one named card. Config block names used for display sections must be unique:
 
 ```md
 <div align="center">
@@ -97,7 +100,7 @@ GitStats reads every `gitstats:config` block in your README and generates one SV
 
 Only set the values you want to change. Omitted settings use the defaults below.
 Config blocks shown inside fenced code examples are ignored.
-Add display sections with paired `<!-- gitstats:display -->` markers. An unnamed display section renders all generated cards. A named display section, such as `<!-- gitstats:display most-used -->`, renders only the matching named config block. GitStats rewrites the content between the markers with matching image tags. Put the markers inside the README layout you want, such as `<div align="center">`.
+Add display sections with paired `<!-- gitstats:display -->` markers. An unnamed display section renders all generated cards in config order. A named display section, such as `<!-- gitstats:display most-used -->`, renders only the matching named config block. GitStats rewrites only the content between the markers, and it injects only image tags plus spacing. Put the markers inside the README layout you want, such as `<div align="center">`. Do not edit the generated content between the markers; change the config blocks instead and rerun the workflow.
 
 ```md
 <!-- gitstats:config example-name
@@ -106,9 +109,11 @@ timeframe: all-time
 gitstats:config -->
 ```
 
-Named blocks write to `profile/{name}.svg`. For example, `<!-- gitstats:config most-used` writes `profile/most-used.svg`.
+Named blocks write to `profile/{name}.svg`. For example, `<!-- gitstats:config most-used` writes `profile/most-used.svg`, and a matching `<!-- gitstats:display most-used -->` section displays that card.
 
 Unnamed blocks are also supported. GitStats derives names from the settings, such as `profile/GitStats-MostUsed-normal.svg` or `profile/GitStats-Recent8Weeks-compact.svg`. If multiple blocks resolve to the same path, GitStats appends `-2`, `-3`, and so on.
+
+When you add, remove, rename, or reorder config blocks, rerun the workflow. GitStats regenerates the SVGs and updates the managed display section automatically when `commit: true`.
 
 | Setting | Default | Description |
 | --- | --- | --- |
@@ -124,8 +129,8 @@ Unnamed blocks are also supported. GitStats derives names from the settings, suc
 | `include-profile-repo` | `false` | Includes the `username/username` profile repository. |
 | `affiliation` | `owner` | Repository affiliation passed to GitHub. Use `owner,collaborator,organization_member` for broader access. |
 | `visibility` | `all` | Repository visibility passed to GitHub. |
-| `display-width` | `100%` | Width attribute for this card inside the managed README display section. |
-| `display-alt` | Automatic | Alt text for this card inside the managed README display section. |
+| `display-width` | `100%` | Width attribute for this card's generated `<img>` tag inside the managed display section. |
+| `display-alt` | Automatic | Alt text for this card's generated `<img>` tag inside the managed display section. |
 
 The subtitle is always generated from `timeframe`: `all-time` for all-time renders, or `last N weeks` for numbered timeframes.
 
@@ -196,7 +201,7 @@ README config blocks drive SVG generation. Workflow inputs provide global defaul
 | `token` | Required | GitHub token used to read repositories, language data, and recent commit data. |
 | `username` | Repository owner | GitHub username to generate stats for. |
 | `readme-config` | `README.md` | README path containing GitStats config blocks. |
-| `commit` | `true` | Commit and push changed generated SVGs using the workflow checkout credentials. |
+| `commit` | `true` | Commit and push changed generated SVGs and README display updates using the workflow checkout credentials. |
 | `max-languages` | `10` | Maximum number of displayed entries, including `Other`. |
 | `grouping` | `true` | Group the smallest languages into `Other` until the bucket is near 5%. |
 | `hide-languages` | `HTML,CSS,JSON` | Languages to exclude after loading all detected languages. |
@@ -244,7 +249,7 @@ For fine-grained Personal Access Tokens:
 5. For a numbered timeframe, reads commits since that many weeks ago and aggregates changed files by language.
 6. Applies `hide-languages`, dynamic grouping, and `max-languages`.
 7. Renders one SVG for every README config block.
-8. Rewrites the managed README display section with matching image tags.
+8. Rewrites the managed README display section with matching image tags and spacing.
 9. Commits changed generated SVGs and README display updates when `commit: true`.
 
 ## Troubleshooting
@@ -269,12 +274,12 @@ Add paired `<!-- gitstats:display -->` markers to your README. GitStats needs th
 
 - All-time numbers are GitHub language byte counts, not lines of code.
 - Recent numbers are commit file change counts, usually additions plus deletions. They show activity, not how much code exists in that language.
-- SVGs are vector graphics. Use README image width attributes, such as `<img width="70%">`, to control display size.
+- SVGs are vector graphics. Use `display-width` to control the generated image width, and use layout HTML outside the display markers for positioning.
 - Recent language detection is based on changed file paths and extensions.
 - Private repository names and source code are not written to the SVG.
 - Generated SVGs are public if committed to a public repository.
 - Automatic commits use the workflow `GITHUB_TOKEN` from `actions/checkout`, not the stats token.
-- GitStats only rewrites content between paired `gitstats:display` markers.
+- GitStats only rewrites content between paired `gitstats:display` markers. Keep layout HTML outside those markers.
 
 ## License
 
