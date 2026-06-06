@@ -52,6 +52,8 @@ name: GitStats
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * 1"
   push:
     branches:
       - main
@@ -185,9 +187,10 @@ For fine-grained Personal Access Tokens:
 
 Run the Workflow / Action once from the Actions tab.  
 After the first successful run, the generated Cards will be committed and displayed in your README.
+The workflow example above also refreshes the Cards automatically once per week.
 
 > [!TIP]
-> To change a card later, edit the matching `gitstats:config` block and rerun the workflow. 
+> To change a card immediately, edit the matching `gitstats:config` block and rerun the workflow.
 
 > [!WARNING]
 > DO NOT eidt the generated content between display markers.
