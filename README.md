@@ -522,15 +522,14 @@ For example, `<!-- gitstats:display most-used -->` displays the card generated b
 
 ### Generation Flow
 
-1. Lists repositories visible to the token.
+1. Reads repository metadata visible to the token.
 2. Filters repositories by owner, forks, archived status, and profile repository settings.
-3. Chooses the metric from `timeframe`.
-4. For `timeframe: all-time`, reads GitHub language byte totals.
-5. For a numbered timeframe, reads commits since that many weeks ago and aggregates changed files by language.
-6. Applies `hide-languages`, dynamic grouping, and `max-languages`.
-7. Renders one SVG for every README config block.
-8. Rewrites the managed README display section with matching image tags and spacing.
-9. Commits changed generated SVGs and README display updates when `commit: true`.
+3. For `timeframe: [weeks` - reads Number of recent changes
+4. For `timeframe: all-time` - reads GitHub language byte totals.
+5. Applies `hide-languages`, dynamic grouping, and `max-languages`.
+6. Renders one SVG for every README config block.
+7. Rewrites the marked README display section with matching image tags and spacing.
+8. Auto Commits changed generated SVGs and README display updates when.
 
 
 
@@ -586,7 +585,6 @@ Add paired `<!-- gitstats:display -->` markers to your README. GitStats needs th
 - Private repository names and source code are not written to the SVG.
 - Generated SVGs are public if committed to a public repository.
 - Automatic commits use the workflow `GITHUB_TOKEN` from `actions/checkout`, not the stats token.
-- GitStats only rewrites content between paired `gitstats:display` markers. Keep layout HTML outside those markers.
 
 
 
