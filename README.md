@@ -241,7 +241,8 @@ For example, `<!-- gitstats:display most-used -->` displays the card generated b
 
 ## Settings
 
-### Basic Settings
+<details open>
+<summary><strong>Basic Settings</strong></summary>
 
 These are the settings you will most likely change first.
 
@@ -268,7 +269,10 @@ These are the settings you will most likely change first.
   </tr>
 </table>
 
-### Styling Settings
+</details>
+
+<details open>
+<summary><strong>Styling Settings</strong></summary>
 
 These settings change how each generated card is rendered or displayed in your README.
 
@@ -295,7 +299,10 @@ These settings change how each generated card is rendered or displayed in your R
   </tr>
 </table>
 
-### Language Settings
+</details>
+
+<details>
+<summary><strong>Language Settings</strong></summary>
 
 These settings control which languages appear and how smaller entries are handled.
 
@@ -322,7 +329,10 @@ These settings control which languages appear and how smaller entries are handle
   </tr>
 </table>
 
-### Repository Settings
+</details>
+
+<details>
+<summary><strong>Repository Settings</strong></summary>
 
 These settings control which repositories GitStats reads from GitHub.
 
@@ -358,6 +368,8 @@ These settings control which repositories GitStats reads from GitHub.
     <td>Repository visibility passed to GitHub.</td>
   </tr>
 </table>
+
+</details>
 
 ### Grouping
 
