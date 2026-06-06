@@ -300,7 +300,7 @@ These settings control which repositories GitStats reads from GitHub.
 <br>
 <br>
 
-### Grouping
+## Grouping
 
 You are able to choose to group small language sets and dynamically decide how much.  
 When `grouping: true` - GitStats groups the smallest languages into `Other` until that bucket is close to 5%, preferring a smaller bucket over larger ones.  
