@@ -224,9 +224,12 @@ For example, `<!-- gitstats:display most-used -->` displays the card generated b
 
 
 > [!NOTE]
-> Display markers should be paired.  
-> GitStats rewrites only the content between the markers & it injects only image tags plus spacing.  
-> Put layout HTML outside the markers.  
+> Display markers should be paired, not used alone.
+> GitStats rewrites only the content between the markers
+
+> [!WARNING]
+> Only image tags & image width get injected. To adjust the width, use the `display-width:` [setting](#settings)
+> Layout HTML has to be OUTSIDE the markers - use the injected Cards however you like.
 
 ```md
 <div align="center">
