@@ -103,6 +103,8 @@ The surrounding `<div>` is yours,  you can center the cards, place them in a tab
 </div>
 ```
 
+<br>
+
 > [!TIP]
 > You can also display the Cards seperate from one another and show them wherever you like.
 
@@ -163,6 +165,8 @@ For fine-grained Personal Access Tokens:
 - Set **Repository permissions -> Metadata** to **Read-only**.
 - For recent renders such as `timeframe: 8`, also set **Repository permissions -> Contents** to **Read-only**.
 - If the token is scoped to an organization with SSO, authorize the token for that organization.
+
+<br>
 
 > [!IMPORTANT]
 > GitStats does not receive access to the Code inside your repositories, only to the Metadata. 
@@ -358,6 +362,8 @@ gitstats:config -->
   <img width="100%" src="./examples/most-used-extended.svg" alt="All-time normal language stats example" />
 </p>
 
+<br>
+
 ### All-Time, Compact
 
 ```md
@@ -371,6 +377,8 @@ gitstats:config -->
   <img width="100%" src="./examples/most-used-compact.svg" alt="All-time compact language stats example" />
 </p>
 
+<br>
+
 ### Recent, Normal
 
 ```md
@@ -383,6 +391,8 @@ gitstats:config -->
 <p align="center">
   <img width="100%" src="./examples/recent-extended.svg" alt="Recent normal language stats example" />
 </p>
+
+<br>
 
 ### Recent, Compact
 
@@ -402,6 +412,7 @@ gitstats:config -->
 
 
 
+<br>
 <br>
 
 ## Action Inputs
@@ -469,6 +480,8 @@ Named blocks get saved on their name path.
   </tr>
 </table>
 
+<br>
+
 ### Display Markers
 
 Named display markers display the card of the corresponding block.  
@@ -488,6 +501,8 @@ For example, `<!-- gitstats:display most-used -->` displays the card generated b
   </tr>
 </table>
 
+<br>
+
 > [!NOTE]
 > Display markers should be paired, not used alone.
 > GitStats rewrites only the content between the markers.
@@ -502,6 +517,8 @@ For example, `<!-- gitstats:display most-used -->` displays the card generated b
 <!-- gitstats:display -->
 </div>
 ```
+
+<br>
 
 ### Generation Flow
 
@@ -521,25 +538,32 @@ For example, `<!-- gitstats:display most-used -->` displays the card generated b
 
 
 <br>
+<br>
 
 ## Troubleshooting
 
 > [!IMPORTANT]
 > GitHub may cache README images for a short while after the workflow updates the SVG files. If the raw SVG file is correct but the README still shows the old card, wait a bit and refresh later.
 
+<br>
 
 ### The Workflow Succeeded, but the README Still Shows the Old Card  
 
 GitHub caches images rendered inside READMEs. Check the SVG file directly in the repository, for example `profile/most-used.svg`. If that raw file is updated, the workflow worked and the README image cache should catch up after a little while.
 
+<br>
 
 ### The Workflow Fails With `API Rate Limit Exceeded`
 
 GitStats reads repository, language, and commit data through the GitHub API. Wait until the rate limit resets, then rerun the workflow from the Actions tab. Recent cards can use more requests than all-time cards because they inspect commits and changed files inside the selected timeframe.
 
+<br>
+
 ### The Card Does Not Use My README Config
 
 Make sure the workflow uses `readme-config: README.md` or leaves that input at its default. Config blocks inside fenced code examples are ignored, so active blocks should live directly in the README body.
+
+<br>
 
 ### The Workflow Cannot Find a Display Block
 
@@ -550,6 +574,7 @@ Add paired `<!-- gitstats:display -->` markers to your README. GitStats needs th
 
 
 
+<br>
 <br>
 
 ## Notes
