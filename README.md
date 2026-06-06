@@ -11,6 +11,8 @@ I didn´t like the functionality, nor the flexibility of existing projects. Hope
 - Flexible timeframe | Use `all-time` language bytes or a recent weeks.
 - Two styles | `normal` extended bar & list. `compact` labeled bar.
 - Language cleanup | Hide languages, group entries into `Other`, and fully configure visibility.
+
+  <br>
 <p align="center">
   <img width="80%" src="./examples/most-used-extended.svg" alt="GitStats normal language example" />
 </p>
@@ -26,6 +28,7 @@ I didn´t like the functionality, nor the flexibility of existing projects. Hope
 
 <br>
 <br>
+
 ## Quick Setup
 
 ### 1. Add the Workflow
