@@ -1,15 +1,4 @@
-<table>
-  <tr>
-    <td width="45%">
-      <h1>Hi, I´m Simon</h1>
-    </td>
-    <td width="55%" align="right">
-      <a href="https://github.com/DenverCoder1/readme-typing-svg">
-        <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=26&duration=3200&pause=900&color=36BCF7&center=false&vCenter=true&width=500&lines=GitStats;Configurable+language+cards;README-driven%2C+clean%2C+and+easy+to+tune" alt="Typing SVG" />
-      </a>
-    </td>
-  </tr>
-</table>
+# GitStats
 
 GitStats is set of fully configurable language breakdown Cards for your Github Profile.
 
@@ -153,37 +142,7 @@ Then display them seperately:
 
 <br>
 
-### 4. Optional: Add a Typing Header
-
-You can add a dynamic typing banner to the top of your profile README with [DenverCoder1/readme-typing-svg](https://github.com/DenverCoder1/readme-typing-svg).
-
-Copy this block near the top of your README:
-
-```md
-<p align="center">
-  <a href="https://github.com/DenverCoder1/readme-typing-svg">
-    <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=28&duration=3200&pause=900&color=36BCF7&center=true&vCenter=true&width=720&lines=Hi%2C+I%27m+YOUR_NAME;I+build+developer+tools;I+like+clean+README+automation" alt="Typing SVG" />
-  </a>
-</p>
-```
-
-Set what it displays by editing the `lines` parameter:
-
-```text
-lines=First+line;Second+line;Third+line
-```
-
-- Separate lines with `;`.
-- Replace spaces with `+` or `%20`.
-- Encode special characters such as commas, apostrophes, and ampersands. The easiest way is to use the [demo builder](https://readme-typing-svg.demolab.com/demo/), then copy the generated URL.
-- Increase `width` if the longest line gets clipped.
-- Change `color` with a hex value without `#`, such as `36BCF7` or `58A6FF`.
-- Change `font`, `size`, `duration`, and `pause` to tune the style and speed.
-- Keep `center=true&vCenter=true` when placing it in a centered profile header.
-
-<br>
-
-### 5. Token Setup
+### 4. Token Setup
 
 GitStats needs a Personal Access Token because the default `GITHUB_TOKEN` only has access to the repository running the workflow.
 
@@ -215,7 +174,7 @@ For fine-grained Personal Access Tokens:
 
 <br>
 
-### 6. Run Once
+### 5. Run Once
 
 Run the Workflow / Action once from the Actions tab.  
 After the first successful run, the generated Cards will be committed and displayed in your README.
