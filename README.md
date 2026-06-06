@@ -6,26 +6,19 @@ GitStats is a fully configurable stats Card for your Github Profile.
 
 I didn´t like the functionality, nor the flexibility of existing projects. Hope you enjoy :)
 
-## At a Glance
+## What it is
 
-- | README-driven config | `gitstats:config`blocks allow easy configurability. |
-- | Managed display | Paired `gitstats:display` markers auto generate Cards. |
-- | Flexible timeframe | Use `all-time` language bytes or a recent weeks. |
-- | Two styles | `normal` extended bar & list. `compact` labeled bar. |
-- | Language cleanup | Hide languages, group entries into `Other`, and fully configure visibility. |
+- README-driven config | `gitstats:config`blocks allow easy configurability.
+- Managed display | Paired `gitstats:display` markers auto generate Cards.
+- Flexible timeframe | Use `all-time` language bytes or a recent weeks.
+- Two styles | `normal` extended bar & list. `compact` labeled bar.
+- Language cleanup | Hide languages, group entries into `Other`, and fully configure visibility.
 <p align="center">
   <img width="100%" src="./examples/most-used-extended.svg" alt="GitStats normal language example" />
 </p>
 
 
 ## Quick Setup
-
-Creates the default pair
-
-| Card | Style | Timeframe |
-| --- | --- | --- |
-| Most Used Languages | `normal` | `all-time` |
-| Recent Languages | `compact` | `8 weeks` |
 
 ### 1. Add the Workflow
 
@@ -65,9 +58,9 @@ jobs:
 
 ### 2. Add Config Blocks in README
 
-Add a Config Block inside the README for each Card.
-Each Card can have a set of [settings](#settings) that let you customize them extensively. 
-Almost all of them are optional. Only set the values you want to change.
+Add a Config Block inside the README for each Card. 
+Each Card can have a set of [settings](#settings) that let you customize them extensively.  
+Almost all of them are optional. Only set the values you want to change.  
 ```md
 <!-- gitstats:config
 style: normal
@@ -91,12 +84,12 @@ gitstats:config -->
 </div>
 ```
 
-GitStats rewrites the content between the display markers with generated image tags. 
-You do not need to add SVG paths or `<img>` tags yourself. 
-The surrounding `<div>` is yours, so you can center the cards, place them in a table, or use any other README layout GitHub supports.
+GitStats rewrites the content between the display markers with generated image tags.  
+You do not need to add SVG paths or `<img>` tags yourself.  
+The surrounding `<div>` is yours, so you can center the cards, place them in a table, or use any other README layout GitHub supports.  
 
-[!TIP]
-You can also display the Cards seperate from one another and display them wherever you like.
+> [!TIP]
+> You can also display the Cards seperate from one another and display them wherever you like.
 
 For this, name the Configuration blocks: 
 ```md
