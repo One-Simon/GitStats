@@ -1,8 +1,6 @@
 # GitStats
 
-Configurable GitHub Profile language statistics breakdowns.
-
-GitStats is a fully configurable stats Card for your Github Profile.
+GitStats is set of fully configurable language breakdown Cards for your Github Profile.
 
 I didn´t like the functionality, nor the flexibility of existing projects. Hope you enjoy :)
 
@@ -17,6 +15,11 @@ I didn´t like the functionality, nor the flexibility of existing projects. Hope
   <img width="100%" src="./examples/most-used-extended.svg" alt="GitStats normal language example" />
 </p>
 
+<p align="center">
+  <img width="100%" src="./examples/recent-compact.svg" alt="Recent compact language stats example" />
+</p>
+
+
 
 ## Quick Setup
 
@@ -25,9 +28,9 @@ I didn´t like the functionality, nor the flexibility of existing projects. Hope
 Add this workflow to the repository where the Cards should be displayed.  
 For a GitHub profile README, that is usually `YOUR_USERNAME/YOUR_USERNAME`.
 
-GitStats is published as a reusable GitHub Action, which needs the workflow to function.  
-The workflow decides when the action runs and grants write permission to the current repository.  
-GitStats then reads README config blocks, generates Cards, updates managed display sections & updates the Cards automatically.  
+GitStats is published as a reusable GitHub Action.  
+the workflow decides when the action runs and grants write permission to the current repository.  
+GitStats reads README config blocks, generates Cards & updates managed display sections automatically.  
 
 ```yaml
 name: GitStats
@@ -58,9 +61,11 @@ jobs:
 
 ### 2. Add Config Blocks in README
 
-Add a Config Block inside the README for each Card. 
-Each Card can have a set of [settings](#settings) that let you customize them extensively.  
-Almost all of them are optional. Only set the values you want to change.  
+Add a Config Block inside the README for each Card.  
+Each Card can have a set of [settings](#settings) that let you customize them extensively.   
+Almost all of them are optional. Only set the values you want to change.   
+
+This is the minimal necessary setup:
 ```md
 <!-- gitstats:config
 style: normal
@@ -73,7 +78,7 @@ timeframe: 8
 gitstats:config -->
 ```
 
-
+  
 
 ### 3. Add a Display Section
 
@@ -91,7 +96,7 @@ The surrounding `<div>` is yours, so you can center the cards, place them in a t
 > [!TIP]
 > You can also display the Cards seperate from one another and show them wherever you like.
 
-For this, name the Configuration blocks: 
+For this, name the Configuration blocks however you like: 
 ```md
 <!-- gitstats:config allTime
 style: normal
@@ -105,7 +110,7 @@ gitstats:config -->
 ```
 
 The block names become the Card names.  
-These examples generate `profile/most-used.svg` and `profile/recent.svg`.  
+These examples generate `profile/allTime.svg` and `profile/recent.svg`.  
 
 Then display them seperately:
 ```md
@@ -122,7 +127,7 @@ Then display them seperately:
 </div>
 ```
 
-4. Token Setup
+### 4. Token Setup
 
 GitStats needs a Personal Access Token because the default `GITHUB_TOKEN` only has access to the repository running the workflow.
 
@@ -146,7 +151,7 @@ For fine-grained Personal Access Tokens:
 - For recent renders such as `timeframe: 8`, also set **Repository permissions -> Contents** to **Read-only**.
 - If the token is scoped to an organization with SSO, authorize the token for that organization.
 
-> ![IMPORTANT]
+> [!IMPORTANT]
 > GitStats does not receive access to the Code inside your repositories, only to the Metadata. 
 
 ### 4. Run Once
@@ -157,8 +162,8 @@ After the first successful run, the generated Cards will be committed and displa
 > [!TIP]
 > To change a card later, edit the matching `gitstats:config` block and rerun the workflow. 
 
->[WARNING]
->DO NOT eidt the generated content between display markers.
+> [!WARNING]
+> DO NOT eidt the generated content between display markers.
 
 
 
@@ -341,8 +346,8 @@ Workflow inputs provide global defaults and automation behavior.
 > GitHub may cache README images for a short while after the workflow updates the SVG files. If the raw SVG file is correct but the README still shows the old card, wait a bit and refresh later.
 
 
-> [!NOTE]
-> ### The Workflow Succeeded, but the README Still Shows the Old Card
+### The Workflow Succeeded, but the README Still Shows the Old Card  
+
 GitHub caches images rendered inside READMEs. Check the SVG file directly in the repository, for example `profile/most-used.svg`. If that raw file is updated, the workflow worked and the README image cache should catch up after a little while.
 
 
