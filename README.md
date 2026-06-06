@@ -29,12 +29,12 @@ Creates the default pair
 
 ### 1. Add the Workflow
 
-Add this workflow to the repository where the Cards should be displayed.
+Add this workflow to the repository where the Cards should be displayed.  
 For a GitHub profile README, that is usually `YOUR_USERNAME/YOUR_USERNAME`.
 
-GitStats is published as a reusable GitHub Action, which needs the workflow to function. 
-The workflow decides when the action runs and grants write permission to the current repository. 
-GitStats then reads README config blocks, generates Cards, updates managed display sections & updates the Cards automatically.
+GitStats is published as a reusable GitHub Action, which needs the workflow to function.  
+The workflow decides when the action runs and grants write permission to the current repository.  
+GitStats then reads README config blocks, generates Cards, updates managed display sections & updates the Cards automatically.  
 
 ```yaml
 name: GitStats
