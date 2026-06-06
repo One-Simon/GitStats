@@ -3,31 +3,29 @@
 Configurable GitHub Profile language statistics breakdowns.
 
 GitStats is a fully configurable stats Card for your Github Profile.
+
 I didn´t like the functionality, nor the flexibility of existing projects. Hope you enjoy :)
 
 ## At a Glance
+
+- | README-driven config | `gitstats:config`blocks allow easy configurability. |
+- | Managed display | Paired `gitstats:display` markers auto generate Cards. |
+- | Flexible timeframe | Use `all-time` language bytes or a recent weeks. |
+- | Two styles | `normal` extended bar & list. `compact` labeled bar. |
+- | Language cleanup | Hide languages, group entries into `Other`, and fully configure visibility. |
 <p align="center">
   <img width="100%" src="./examples/most-used-extended.svg" alt="GitStats normal language example" />
 </p>
-
-
-| Feature | What it does |
-| --- | --- |
-| README-driven config | `gitstats:config`blocks allow easy configurability. |
-| Managed display | Paired `gitstats:display` markers auto generate Cards. |
-| Flexible timeframe | Use `all-time` language bytes or a recent weeks. |
-| Two styles | `normal` extended bar & list. `compact` labeled bar. |
-| Language cleanup | Hide languages, group entries into `Other`, and fully configure visibility. |
 
 
 ## Quick Setup
 
 Creates the default pair
 
-| Card | Style | Timeframe
-| --- | --- | --- | --- |
-| Most Used Languages | `normal` | `all-time` 
-| Recent Languages | `compact` | `8 weeks` 
+| Card | Style | Timeframe |
+| --- | --- | --- |
+| Most Used Languages | `normal` | `all-time` |
+| Recent Languages | `compact` | `8 weeks` |
 
 ### 1. Add the Workflow
 
