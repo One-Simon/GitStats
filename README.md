@@ -21,6 +21,11 @@ I didn´t like the functionality, nor the flexibility of existing projects. Hope
 
 
 
+
+
+
+<br>
+<br>
 ## Quick Setup
 
 ### 1. Add the Workflow
@@ -58,7 +63,7 @@ jobs:
           username: YOUR_USERNAME
 ```
 
-
+<br>
 ### 2. Add Config Blocks in README
 
 Add a Config Block inside the README for each Card.  
@@ -79,7 +84,7 @@ gitstats:config -->
 ```
 
 
-
+<br>
 ### 3. Add a Display Section
 
 GitStats displays the Cards between the markers with generated image tags.  
@@ -127,6 +132,8 @@ Then display them seperately:
 </div>
 ```
 
+
+<br>
 ### 4. Token Setup
 
 GitStats needs a Personal Access Token because the default `GITHUB_TOKEN` only has access to the repository running the workflow.
@@ -154,7 +161,9 @@ For fine-grained Personal Access Tokens:
 > [!IMPORTANT]
 > GitStats does not receive access to the Code inside your repositories, only to the Metadata. 
 
-### 4. Run Once
+
+<br>
+### 5. Run Once
 
 Run the Workflow / Action once from the Actions tab.  
 After the first successful run, the generated Cards will be committed and displayed in your README.
@@ -165,6 +174,11 @@ After the first successful run, the generated Cards will be committed and displa
 > [!WARNING]
 > DO NOT eidt the generated content between display markers.
 
+
+
+
+
+<br>
 ## Settings
 
 <details open>
@@ -297,9 +311,13 @@ These settings control which repositories GitStats reads from GitHub.
 
 </details>
 
-<br>
-<br>
 
+
+
+
+
+<br>
+<br>
 ## Grouping
 
 You are able to choose to group small language sets and dynamically decide how much.  
@@ -309,6 +327,10 @@ Using `max-languages` you can set how many languages should be displayed (bar & 
 If grouping is enabled, but the amount is larger than `max-languages` - the lowest remaining entries are also merged into `Other`.  
 
 
+
+
+
+<br>
 ## Examples
 
 Mix `style`, `timeframe`, and the other settings however you want. These four examples are the same configurable viewer with different settings.  
@@ -365,6 +387,12 @@ gitstats:config -->
   <img width="100%" src="./examples/recent-compact.svg" alt="Recent compact language stats example" />
 </p>
 
+
+
+
+
+
+<br>
 ## Action Inputs
 
 README config blocks drive Card generation.  
@@ -392,6 +420,9 @@ Workflow inputs provide global defaults and automation behavior.
 
 
 
+
+
+<br>
 ## How It Works
 
 GitStats reads every `gitstats:config` block in your README and generates one Card for each block.
@@ -472,6 +503,12 @@ For example, `<!-- gitstats:display most-used -->` displays the card generated b
 8. Rewrites the managed README display section with matching image tags and spacing.
 9. Commits changed generated SVGs and README display updates when `commit: true`.
 
+
+
+
+
+
+<br>
 ## Troubleshooting
 
 > [!IMPORTANT]
@@ -495,6 +532,12 @@ Make sure the workflow uses `readme-config: README.md` or leaves that input at i
 
 Add paired `<!-- gitstats:display -->` markers to your README. GitStats needs those markers to know where it may write the generated image HTML. If you use a named display block, make sure the name matches a named `gitstats:config` block.
 
+
+
+
+
+
+<br>
 ## Notes
 
 - All-time numbers are GitHub language byte counts, not lines of code.
@@ -506,6 +549,11 @@ Add paired `<!-- gitstats:display -->` markers to your README. GitStats needs th
 - Automatic commits use the workflow `GITHUB_TOKEN` from `actions/checkout`, not the stats token.
 - GitStats only rewrites content between paired `gitstats:display` markers. Keep layout HTML outside those markers.
 
+
+
+
+
+<br>
 ## License
 
 MIT
