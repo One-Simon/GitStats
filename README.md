@@ -241,22 +241,123 @@ For example, `<!-- gitstats:display most-used -->` displays the card generated b
 
 ## Settings
 
-| Setting | Default | Description |
-| --- | --- | --- |
-| `title` | Automatic | Optional card title override. Defaults to `Most Used Languages` for `all-time`, or `Recent Languages` for numbered timeframes. |
-| `style` | `normal` | `normal` renders the full card with a list. `compact` renders a thicker labeled bar. |
-| `timeframe` | `all-time` | `all-time` uses GitHub language bytes. A number, such as `8`, uses recent commit changes from that many weeks. |
-| `show-values` | `true` | Shows byte or change totals in the normal renderer. Compact always shows percentages only. |
-| `grouping` | `true` | Groups the smallest languages into `Other` until the bucket is near 5%. |
-| `max-languages` | `10` | Maximum number of displayed entries, including `Other`. Overflow languages are grouped into `Other`. |
-| `hide-languages` | `HTML,CSS,JSON` | Comma-separated languages to exclude after loading all detected languages. |
-| `include-forks` | `false` | Includes forked repositories. |
-| `include-archived` | `false` | Includes archived repositories. |
-| `include-profile-repo` | `false` | Includes the `username/username` profile repository. |
-| `affiliation` | `owner` | Repository affiliation passed to GitHub. Use `owner,collaborator,organization_member` for broader access. |
-| `visibility` | `all` | Repository visibility passed to GitHub. |
-| `display-width` | `100%` | Width attribute for this card's generated `<img>` tag inside the managed display section. |
-| `display-alt` | Automatic | Alt text for this card's generated `<img>` tag inside the managed display section. |
+### Basic Settings
+
+These are the settings you will most likely change first.
+
+<table align="center">
+  <tr>
+    <th>Setting</th>
+    <th>Default</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td><code>title</code></td>
+    <td>Automatic</td>
+    <td>Optional card title override. Defaults to <code>Most Used Languages</code> for <code>all-time</code>, or <code>Recent Languages</code> for numbered timeframes.</td>
+  </tr>
+  <tr>
+    <td><code>timeframe</code></td>
+    <td><code>all-time</code></td>
+    <td><code>all-time</code> uses GitHub language bytes. A number, such as <code>8</code>, uses recent commit changes from that many weeks.</td>
+  </tr>
+  <tr>
+    <td><code>style</code></td>
+    <td><code>normal</code></td>
+    <td><code>normal</code> renders the full card with a list. <code>compact</code> renders a thicker labeled bar.</td>
+  </tr>
+</table>
+
+### Styling Settings
+
+These settings change how each generated card is rendered or displayed in your README.
+
+<table align="center">
+  <tr>
+    <th>Setting</th>
+    <th>Default</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td><code>show-values</code></td>
+    <td><code>true</code></td>
+    <td>Shows byte or change totals in the normal renderer. Compact cards always show percentages only.</td>
+  </tr>
+  <tr>
+    <td><code>display-width</code></td>
+    <td><code>100%</code></td>
+    <td>Width attribute for this card's generated <code>&lt;img&gt;</code> tag inside the managed display section.</td>
+  </tr>
+  <tr>
+    <td><code>display-alt</code></td>
+    <td>Automatic</td>
+    <td>Alt text for this card's generated <code>&lt;img&gt;</code> tag inside the managed display section.</td>
+  </tr>
+</table>
+
+### Language Settings
+
+These settings control which languages appear and how smaller entries are handled.
+
+<table align="center">
+  <tr>
+    <th>Setting</th>
+    <th>Default</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td><code>hide-languages</code></td>
+    <td><code>HTML,CSS,JSON</code></td>
+    <td>Comma-separated languages to exclude after loading all detected languages.</td>
+  </tr>
+  <tr>
+    <td><code>grouping</code></td>
+    <td><code>true</code></td>
+    <td>Groups the smallest languages into <code>Other</code> until the bucket is near 5%.</td>
+  </tr>
+  <tr>
+    <td><code>max-languages</code></td>
+    <td><code>10</code></td>
+    <td>Maximum number of displayed entries, including <code>Other</code>. Overflow languages are grouped into <code>Other</code>.</td>
+  </tr>
+</table>
+
+### Repository Settings
+
+These settings control which repositories GitStats reads from GitHub.
+
+<table align="center">
+  <tr>
+    <th>Setting</th>
+    <th>Default</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td><code>include-forks</code></td>
+    <td><code>false</code></td>
+    <td>Includes forked repositories.</td>
+  </tr>
+  <tr>
+    <td><code>include-archived</code></td>
+    <td><code>false</code></td>
+    <td>Includes archived repositories.</td>
+  </tr>
+  <tr>
+    <td><code>include-profile-repo</code></td>
+    <td><code>false</code></td>
+    <td>Includes the <code>username/username</code> profile repository.</td>
+  </tr>
+  <tr>
+    <td><code>affiliation</code></td>
+    <td><code>owner</code></td>
+    <td>Repository affiliation passed to GitHub. Use <code>owner,collaborator,organization_member</code> for broader access.</td>
+  </tr>
+  <tr>
+    <td><code>visibility</code></td>
+    <td><code>all</code></td>
+    <td>Repository visibility passed to GitHub.</td>
+  </tr>
+</table>
 
 ### Grouping
 
