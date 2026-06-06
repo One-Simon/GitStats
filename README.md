@@ -1,12 +1,12 @@
 # GitStats
 
 <p align="center">
-  <img src="https://img.shields.io/badge/GitHub%20Action-composite-2088FF?style=flat-square&logo=githubactions&logoColor=white" alt="Composite GitHub Action" />
-  <img src="https://img.shields.io/badge/Node.js-20%2B-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js 20 plus" />
-  <img src="https://img.shields.io/badge/GitHub%20API-REST%20v3-181717?style=flat-square&logo=github&logoColor=white" alt="GitHub REST API v3" />
-  <img src="https://img.shields.io/badge/Output-SVG%20cards-FFB13B?style=flat-square" alt="SVG card output" />
-  <img src="https://img.shields.io/badge/Config-README%20blocks-7C3AED?style=flat-square&logo=markdown&logoColor=white" alt="README config blocks" />
-  <img src="https://img.shields.io/badge/Dependencies-none-2EA44F?style=flat-square" alt="No package dependencies" />
+  <img src="https://img.shields.io/badge/GitHub%20Action-composite-2088FF?style=for-the-badge&logo=githubactions&logoColor=white" alt="Composite GitHub Action" />
+  <img src="https://img.shields.io/badge/Node.js-20%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js 20 plus" />
+  <img src="https://img.shields.io/badge/GitHub%20API-REST%20v3-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub REST API v3" />
+  <img src="https://img.shields.io/badge/Output-SVG%20cards-FFB13B?style=for-the-badge" alt="SVG card output" />
+  <img src="https://img.shields.io/badge/Config-README%20blocks-7C3AED?style=for-the-badge&logo=markdown&logoColor=white" alt="README config blocks" />
+  <img src="https://img.shields.io/badge/Dependencies-none-2EA44F?style=for-the-badge" alt="No package dependencies" />
 </p>
 
 GitStats is set of fully configurable language breakdown Cards for your Github Profile.
