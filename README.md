@@ -168,7 +168,7 @@ After the first successful run, the generated Cards will be committed and displa
 ## Settings
 
 <details open>
-<summary><strong>Basic Settings</strong></summary>
+<summary><h3>Basic Settings</h3></summary>
 
 These are the settings you will most likely change first.
 
@@ -198,7 +198,7 @@ These are the settings you will most likely change first.
 </details>
 
 <details open>
-<summary><strong>Styling Settings</strong></summary>
+<summary><h3>Styling Settings</h3></summary>
 
 These settings change how each generated card is rendered or displayed in your README.
 
@@ -228,7 +228,7 @@ These settings change how each generated card is rendered or displayed in your R
 </details>
 
 <details>
-<summary><strong>Language Settings</strong></summary>
+<summary><h3>Language Settings</h3></summary>
 
 These settings control which languages appear and how smaller entries are handled.
 
@@ -258,7 +258,7 @@ These settings control which languages appear and how smaller entries are handle
 </details>
 
 <details>
-<summary><strong>Repository Settings</strong></summary>
+<summary><h3>Repository Settings</h3></summary>
 
 These settings control which repositories GitStats reads from GitHub.
 
@@ -296,6 +296,9 @@ These settings control which repositories GitStats reads from GitHub.
 </table>
 
 </details>
+
+<br>
+<br>
 
 ### Grouping
 
