@@ -1,9 +1,10 @@
 # GitStats
 
 <p align="center">
-  <img src="https://img.shields.io/badge/GitHub%20Action-composite-2088FF?style=for-the-badge&logo=githubactions&logoColor=white" alt="Composite GitHub Action" />
-  <img src="https://img.shields.io/badge/Node.js-20%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js 20 plus" />
-  <img src="https://img.shields.io/badge/GitHub%20API-REST%20v3-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub REST API v3" />
+  <img src="https://img.shields.io/badge/Composite-Action-2088FF?style=for-the-badge&logo=githubactions&logoColor=white" alt="Composite Action" />
+  <img src="https://img.shields.io/badge/Auto-README%20Updates-2EA44F?style=for-the-badge&logo=github&logoColor=white" alt="Auto README Updates" />
+  <img src="https://img.shields.io/badge/GitHub-REST%20API-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub REST API" />
+  <img src="https://img.shields.io/badge/License-MIT-F7B731?style=for-the-badge" alt="MIT License" />
 </p>
 
 GitStats is set of fully configurable language breakdown Cards for your Github Profile.
