@@ -228,7 +228,7 @@ For example, `<!-- gitstats:display most-used -->` displays the card generated b
 > GitStats rewrites only the content between the markers
 
 > [!WARNING]
-> Only image tags & image width get injected. To adjust the width, use the `display-width:` [setting](#settings)
+> Only image tags & image width get injected. To adjust the width, use the `display-width:` [setting](#settings)  
 > Layout HTML has to be OUTSIDE the markers - use the injected Cards however you like.
 
 ```md
