@@ -14,9 +14,12 @@ const OTHER_LANGUAGE = "Other";
 const GROUPING_TARGET_MIN = 0.045;
 const GROUPING_TARGET_MAX = 0.055;
 const GENERATED_OUTPUT_DIR = "profile";
-const GENERATED_COMMIT_MESSAGE = "Update language stats";
+const GENERATED_COMMIT_MESSAGE = "Update language stats [skip ci]";
 const GIT_AUTHOR_NAME = "github-actions[bot]";
 const GIT_AUTHOR_EMAIL = "41898282+github-actions[bot]@users.noreply.github.com";
+const DEFAULT_API_REQUEST_TIMEOUT_MS = 15000;
+const DEFAULT_API_MAX_RETRY_SECONDS = 60;
+const DEFAULT_API_RATE_LIMIT_BUFFER = 50;
 const execFileAsync = promisify(execFile);
 
 export function parseBoolean(value) {
@@ -30,21 +33,270 @@ function parseStrictBoolean(value) {
   return value;
 }
 
-async function github(path, headers) {
-  const response = await fetch(`https://api.github.com${path}`, { headers });
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`${response.status} ${response.statusText}: ${body}`);
-  }
-  return response.json();
+function parsePositiveInteger(value, fallback) {
+  const candidate = value === undefined || value === null || value === "" ? fallback : Number(value);
+  return Number.isInteger(candidate) && candidate > 0 ? candidate : Number.NaN;
 }
 
-async function listRepos({ affiliation, visibility, username, includeForks, includeArchived, includeProfileRepo, headers }) {
+export function normalizeToken(token) {
+  return String(token || "").trim();
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function headerValue(headers, name) {
+  return headers?.get?.(name) ?? headers?.get?.(name.toLowerCase()) ?? null;
+}
+
+function rateLimitInfo(headers) {
+  const numericHeader = (name) => {
+    const value = headerValue(headers, name);
+    if (value === null || value === undefined || value === "") return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+
+  return {
+    limit: numericHeader("x-ratelimit-limit"),
+    remaining: numericHeader("x-ratelimit-remaining"),
+    used: numericHeader("x-ratelimit-used"),
+    reset: numericHeader("x-ratelimit-reset"),
+    resource: headerValue(headers, "x-ratelimit-resource"),
+    retryAfter: numericHeader("retry-after"),
+  };
+}
+
+function formatResetTime(reset) {
+  if (!reset) return "unknown";
+  return new Date(reset * 1000).toISOString();
+}
+
+function parseResponseBody(body) {
+  if (!body) return {};
+  try {
+    return JSON.parse(body);
+  } catch {
+    return { message: body };
+  }
+}
+
+function classifyGitHubError(status, body, headers) {
+  const message = String(body?.message || "").toLowerCase();
+  const remaining = headerValue(headers, "x-ratelimit-remaining");
+  const retryAfter = headerValue(headers, "retry-after");
+
+  if (status === 401) return "auth";
+  if (status === 409) return "empty-repo";
+  if (status === 404) return "not-found";
+  if (status === 422) return "validation";
+  if (status === 403 || status === 429) {
+    if (remaining === "0" || message.includes("rate limit exceeded")) return "rate-limit";
+    if (retryAfter || message.includes("secondary rate limit") || message.includes("abuse")) {
+      return "secondary-rate-limit";
+    }
+    return "permission";
+  }
+  if (status >= 500) return "server";
+  return "unexpected";
+}
+
+function contextSummary(context = {}) {
+  return Object.entries(context)
+    .filter(([, value]) => value !== undefined && value !== null && value !== "")
+    .map(([key, value]) => `${key}=${value}`)
+    .join(", ");
+}
+
+export class GitStatsApiError extends Error {
+  constructor({ classification, status, statusText, body, headers, path, context, cause }) {
+    const info = rateLimitInfo(headers);
+    const bodyMessage = body?.message || body?.error || (typeof body === "string" ? body : "");
+    const details = [
+      classification ? `type=${classification}` : "",
+      status ? `status=${status}` : "",
+      path ? `path=${path}` : "",
+      contextSummary(context),
+      bodyMessage ? `message=${bodyMessage}` : "",
+      headerValue(headers, "x-github-request-id") ? `request-id=${headerValue(headers, "x-github-request-id")}` : "",
+      Number.isFinite(info.remaining) ? `remaining=${info.remaining}` : "",
+      info.reset ? `reset=${formatResetTime(info.reset)}` : "",
+      headerValue(headers, "x-accepted-github-permissions")
+        ? `accepted-permissions=${headerValue(headers, "x-accepted-github-permissions")}`
+        : "",
+      headerValue(headers, "x-github-sso") ? `sso=${headerValue(headers, "x-github-sso")}` : "",
+    ].filter(Boolean).join("; ");
+
+    const friendly = friendlyApiMessage(classification);
+    super(`${friendly}${details ? ` (${details})` : ""}`);
+    this.name = "GitStatsApiError";
+    this.classification = classification;
+    this.status = status;
+    this.statusText = statusText;
+    this.body = body;
+    this.headers = headers;
+    this.path = path;
+    this.context = context;
+    this.rateLimit = info;
+    this.cause = cause;
+  }
+}
+
+function friendlyApiMessage(classification) {
+  if (classification === "auth") {
+    return "GitStats could not authenticate with the supplied token. The token may be empty, invalid, expired, or revoked.";
+  }
+  if (classification === "rate-limit") {
+    return "GitStats stopped because the GitHub REST API primary rate limit was exhausted.";
+  }
+  if (classification === "secondary-rate-limit") {
+    return "GitStats stopped because GitHub reported a secondary API rate limit.";
+  }
+  if (classification === "permission") {
+    return "GitStats could not access a GitHub API resource with the token permissions provided.";
+  }
+  if (classification === "not-found") {
+    return "GitStats could not find a GitHub API resource visible to the token.";
+  }
+  if (classification === "validation") {
+    return "GitHub rejected a GitStats API request as invalid.";
+  }
+  if (classification === "network") {
+    return "GitStats could not reach the GitHub API.";
+  }
+  if (classification === "server") {
+    return "GitHub returned a temporary server error.";
+  }
+  return "GitStats GitHub API request failed.";
+}
+
+export class GitHubClient {
+  constructor(options) {
+    this.token = normalizeToken(options.token);
+    this.userAgent = options.userAgent || "GitStats-language-card";
+    this.requestTimeoutMs = options.apiRequestTimeoutMs || DEFAULT_API_REQUEST_TIMEOUT_MS;
+    this.maxRetrySeconds = options.apiMaxRetrySeconds || DEFAULT_API_MAX_RETRY_SECONDS;
+    this.rateLimitBuffer = options.apiRateLimitBuffer ?? DEFAULT_API_RATE_LIMIT_BUFFER;
+    this.fetchImpl = options.fetchImpl || globalThis.fetch;
+    this.requestCount = 0;
+    this.lastRateLimit = null;
+
+    if (!this.token) {
+      throw new Error("GitStats requires a non-empty token input. Check that the workflow secret exists and is not blank.");
+    }
+  }
+
+  headers() {
+    return {
+      Accept: "application/vnd.github+json",
+      Authorization: `Bearer ${this.token}`,
+      "X-GitHub-Api-Version": "2022-11-28",
+      "User-Agent": this.userAgent,
+    };
+  }
+
+  async request(path, context = {}, requestOptions = {}) {
+    const retryStartedAt = Date.now();
+    let attempt = 0;
+
+    while (true) {
+      attempt += 1;
+      try {
+        return await this.tryRequest(path, { ...context, attempt }, requestOptions);
+      } catch (error) {
+        const delay = retryDelayMs(error, retryStartedAt, this.maxRetrySeconds);
+        if (requestOptions.retry === false) throw error;
+        if (!delay) throw error;
+        await sleep(delay);
+      }
+    }
+  }
+
+  async tryRequest(path, context, requestOptions) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.requestTimeoutMs);
+
+    try {
+      this.requestCount += 1;
+      const response = await this.fetchImpl(`https://api.github.com${path}`, {
+        headers: this.headers(),
+        signal: controller.signal,
+      });
+      this.lastRateLimit = rateLimitInfo(response.headers);
+
+      if (!response.ok) {
+        const text = await response.text();
+        const body = parseResponseBody(text);
+        throw new GitStatsApiError({
+          classification: classifyGitHubError(response.status, body, response.headers),
+          status: response.status,
+          statusText: response.statusText,
+          body,
+          headers: response.headers,
+          path,
+          context,
+        });
+      }
+
+      return requestOptions.raw ? response : response.json();
+    } catch (error) {
+      if (error instanceof GitStatsApiError) throw error;
+      throw new GitStatsApiError({
+        classification: "network",
+        body: { message: error.message },
+        path,
+        context,
+        cause: error,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async preflight() {
+    await this.request("/user", { operation: "token-preflight" }, { retry: false });
+    const rateLimit = await this.request("/rate_limit", { operation: "rate-limit-preflight" }, { retry: false });
+    const core = rateLimit?.resources?.core;
+    if (core) {
+      this.lastRateLimit = {
+        limit: core.limit,
+        remaining: core.remaining,
+        used: core.used,
+        reset: core.reset,
+        resource: "core",
+      };
+    }
+    return this.lastRateLimit;
+  }
+}
+
+function retryDelayMs(error, startedAt, maxRetrySeconds) {
+  if (!(error instanceof GitStatsApiError)) return 0;
+  if (error.classification === "auth" || error.classification === "permission" || error.classification === "not-found") {
+    return 0;
+  }
+  if (!["network", "server", "secondary-rate-limit"].includes(error.classification)) {
+    return 0;
+  }
+
+  const elapsedMs = Date.now() - startedAt;
+  const remainingMs = maxRetrySeconds * 1000 - elapsedMs;
+  if (remainingMs <= 0) return 0;
+
+  const retryAfterMs = Number.isFinite(error.rateLimit?.retryAfter) ? error.rateLimit.retryAfter * 1000 : 0;
+  const fallbackMs = Math.min(1000 * 2 ** Math.max(0, Number(error.context?.attempt || 1) - 1), 10000);
+  const delay = retryAfterMs || fallbackMs;
+  return delay <= remainingMs ? delay : 0;
+}
+
+async function listRepos(client, options) {
+  const { affiliation, visibility, username, includeForks, includeArchived, includeProfileRepo } = options;
   const repos = [];
   for (let page = 1; ; page += 1) {
-    const batch = await github(
+    const batch = await client.request(
       `/user/repos?per_page=100&page=${page}&affiliation=${encodeURIComponent(affiliation)}&visibility=${encodeURIComponent(visibility)}&sort=updated`,
-      headers,
+      { operation: "list-repos", username, affiliation, visibility, page },
     );
     repos.push(...batch);
     if (batch.length < 100) break;
@@ -640,11 +892,15 @@ function applyMaxLanguageGrouping(languages, maxLanguages) {
   return mergeOtherBucket([...keep, { language: OTHER_LANGUAGE, value: groupedValue }]);
 }
 
-async function collectLanguageByteTotals(headers, repos) {
+async function collectLanguageByteTotals(client, repos, context = {}) {
   const totals = new Map();
 
   for (const repo of repos) {
-    const languages = await github(`/repos/${repo.owner.login}/${repo.name}/languages`, headers);
+    const languages = await client.request(`/repos/${repo.owner.login}/${repo.name}/languages`, {
+      ...context,
+      operation: "list-repository-languages",
+      repo: `${repo.owner.login}/${repo.name}`,
+    });
     for (const [language, bytes] of Object.entries(languages)) {
       totals.set(language, (totals.get(language) || 0) + bytes);
     }
@@ -653,57 +909,144 @@ async function collectLanguageByteTotals(headers, repos) {
   return totals;
 }
 
-async function collectLanguageChangeTotals(options, headers, repos) {
-  const totals = new Map();
+async function collectRecentCommitRefs(client, options, repos, context = {}) {
+  const refs = [];
   const since = sinceForTimeframe(options.timeframe);
 
   for (const repo of repos) {
     for (let page = 1; ; page += 1) {
       let commits;
       try {
-        commits = await github(
+        commits = await client.request(
           `/repos/${repo.owner.login}/${repo.name}/commits?per_page=100&page=${page}&since=${encodeURIComponent(since)}`,
-          headers,
+          {
+            ...context,
+            operation: "list-recent-commits",
+            repo: `${repo.owner.login}/${repo.name}`,
+            timeframe: options.timeframe,
+            page,
+          },
         );
       } catch (error) {
-        if (String(error.message).startsWith("409 Conflict:")) break;
+        if (error instanceof GitStatsApiError && error.classification === "empty-repo") break;
         throw error;
       }
       if (!commits.length) break;
 
       for (const commit of commits) {
-        const detail = await github(`/repos/${repo.owner.login}/${repo.name}/commits/${commit.sha}`, headers);
-        for (const file of detail.files || []) {
-          const language = languageForFilename(file.filename);
-          if (!language) continue;
-          totals.set(language, (totals.get(language) || 0) + (file.changes ?? file.additions ?? 0));
-        }
+        refs.push({ repo, sha: commit.sha });
       }
 
       if (commits.length < 100) break;
     }
   }
 
+  return refs;
+}
+
+function assertRateLimitBudget(client, neededRequests, context = {}) {
+  const remaining = client.lastRateLimit?.remaining;
+  const reset = client.lastRateLimit?.reset;
+  if (!Number.isFinite(remaining)) return;
+
+  const required = neededRequests + client.rateLimitBuffer;
+  if (remaining >= required) return;
+
+  const headers = new Headers();
+  headers.set("x-ratelimit-remaining", String(remaining));
+  if (reset) headers.set("x-ratelimit-reset", String(reset));
+  throw new GitStatsApiError({
+    classification: "rate-limit",
+    status: 403,
+    statusText: "Forbidden",
+    body: {
+      message: `GitStats needs about ${neededRequests} more GitHub API requests plus a ${client.rateLimitBuffer} request buffer, but only ${remaining} requests remain.`,
+    },
+    headers,
+    context,
+  });
+}
+
+async function preflightRecentAccess(client, options, repos, context = {}) {
+  const since = sinceForTimeframe(options.timeframe);
+
+  for (const repo of repos) {
+    try {
+      await client.request(
+        `/repos/${repo.owner.login}/${repo.name}/commits?per_page=1&page=1&since=${encodeURIComponent(since)}`,
+        {
+          ...context,
+          operation: "recent-card-permission-preflight",
+          repo: `${repo.owner.login}/${repo.name}`,
+          timeframe: options.timeframe,
+        },
+        { retry: false },
+      );
+      return;
+    } catch (error) {
+      if (error instanceof GitStatsApiError && error.classification === "empty-repo") continue;
+      throw error;
+    }
+  }
+}
+
+async function collectCommitFiles(client, ref, context = {}) {
+  const files = [];
+  for (let page = 1; ; page += 1) {
+    const detail = await client.request(
+      `/repos/${ref.repo.owner.login}/${ref.repo.name}/commits/${ref.sha}?per_page=100&page=${page}`,
+      {
+        ...context,
+        operation: "get-commit-detail",
+        repo: `${ref.repo.owner.login}/${ref.repo.name}`,
+        commit: ref.sha,
+        page,
+      },
+    );
+    files.push(...(detail.files || []));
+    if (!detail.files || detail.files.length < 100) break;
+  }
+  return files;
+}
+
+async function collectLanguageChangeTotals(client, options, repos, context = {}) {
+  const totals = new Map();
+  await preflightRecentAccess(client, options, repos, context);
+  const refs = await collectRecentCommitRefs(client, options, repos, context);
+  assertRateLimitBudget(client, refs.length, {
+    ...context,
+    operation: "recent-card-rate-limit-budget",
+    timeframe: options.timeframe,
+  });
+
+  for (const ref of refs) {
+    const files = await collectCommitFiles(client, ref, context);
+    for (const file of files) {
+      const language = languageForFilename(file.filename);
+      if (!language) continue;
+      totals.set(language, (totals.get(language) || 0) + (file.changes ?? file.additions ?? 0));
+    }
+  }
+
   return totals;
 }
 
-async function collectLanguageTotals(options, headers, repos) {
+async function collectLanguageTotals(client, options, repos, context = {}) {
   if (metricForTimeframe(options.timeframe) === METRIC_BYTES) {
-    return collectLanguageByteTotals(headers, repos);
+    return collectLanguageByteTotals(client, repos, context);
   }
-  return collectLanguageChangeTotals(options, headers, repos);
+  return collectLanguageChangeTotals(client, options, repos, context);
 }
 
 export async function generateLanguagesFromGithub(options) {
-  const headers = {
-    Accept: "application/vnd.github+json",
-    Authorization: `Bearer ${options.token}`,
-    "X-GitHub-Api-Version": "2022-11-28",
-    "User-Agent": options.userAgent,
-  };
-  const repos = await listRepos({ ...options, headers });
+  const client = options.client || new GitHubClient(options);
+  if (!options.client) await client.preflight();
+  const repos = options.repos || await listRepos(client, options);
   const metric = metricForTimeframe(options.timeframe);
-  const totals = await collectLanguageTotals(options, headers, repos);
+  const totals = await collectLanguageTotals(client, options, repos, {
+    card: options.name || options.output,
+    timeframe: options.timeframe,
+  });
   const languages = filterAndRankTotals(totals, options);
   const total = languages.reduce((sum, language) => sum + language.value, 0);
 
@@ -715,12 +1058,12 @@ export async function generateLanguagesFromGithub(options) {
 }
 
 export function optionsFromEnv(env = process.env) {
-  const maxLanguages = Number(env.GITSTATS_MAX_LANGUAGES || 10);
+  const maxLanguages = parsePositiveInteger(env.GITSTATS_MAX_LANGUAGES, 10);
   const timeframe = parseTimeframe(env.GITSTATS_TIMEFRAME || ALL_TIME);
   const readmeConfigPath = Object.hasOwn(env, "GITSTATS_README_CONFIG") ? env.GITSTATS_README_CONFIG : "README.md";
 
   return {
-    token: env.GITSTATS_TOKEN,
+    token: normalizeToken(env.GITSTATS_TOKEN),
     username: env.GITSTATS_USERNAME,
     maxLanguages,
     timeframe,
@@ -737,6 +1080,9 @@ export function optionsFromEnv(env = process.env) {
     style: (env.GITSTATS_STYLE || "normal").toLowerCase(),
     userAgent: env.GITSTATS_USER_AGENT || "GitStats-language-card",
     readmeConfigPath,
+    apiRequestTimeoutMs: parsePositiveInteger(env.GITSTATS_API_REQUEST_TIMEOUT_MS, DEFAULT_API_REQUEST_TIMEOUT_MS),
+    apiMaxRetrySeconds: parsePositiveInteger(env.GITSTATS_API_MAX_RETRY_SECONDS, DEFAULT_API_MAX_RETRY_SECONDS),
+    apiRateLimitBuffer: parsePositiveInteger(env.GITSTATS_API_RATE_LIMIT_BUFFER, DEFAULT_API_RATE_LIMIT_BUFFER),
   };
 }
 
@@ -800,13 +1146,13 @@ export async function loadNamedReadmeConfig(path, name) {
 }
 
 export function validateOptions(options) {
-  if (!options.token) throw new Error("GitStats requires a token input.");
+  if (!normalizeToken(options.token)) throw new Error("GitStats requires a non-empty token input.");
   if (!options.username) throw new Error("GitStats requires a username input.");
-  if (!Number.isFinite(options.maxLanguages) || options.maxLanguages < 1) {
-    throw new Error("max-languages must be a positive number.");
+  if (!Number.isInteger(options.maxLanguages) || options.maxLanguages < 1) {
+    throw new Error("max-languages must be a positive integer.");
   }
-  if (!isAllTime(options.timeframe) && (!Number.isFinite(options.timeframe) || options.timeframe < 1)) {
-    throw new Error("timeframe must be all-time or a positive number of weeks.");
+  if (!isAllTime(options.timeframe) && (!Number.isInteger(options.timeframe) || options.timeframe < 1)) {
+    throw new Error("timeframe must be all-time or a positive integer number of weeks.");
   }
   if (!["normal", "compact"].includes(options.style)) {
     throw new Error("style must be normal or compact.");
@@ -824,11 +1170,20 @@ export function validateOptions(options) {
   if (!Array.isArray(options.hideLanguages)) {
     throw new Error("hide-languages must be a comma-separated language list.");
   }
+  if (!Number.isInteger(options.apiRequestTimeoutMs) || options.apiRequestTimeoutMs < 1) {
+    throw new Error("api-request-timeout-ms must be a positive integer.");
+  }
+  if (!Number.isInteger(options.apiMaxRetrySeconds) || options.apiMaxRetrySeconds < 1) {
+    throw new Error("api-max-retry-seconds must be a positive integer.");
+  }
+  if (!Number.isInteger(options.apiRateLimitBuffer) || options.apiRateLimitBuffer < 1) {
+    throw new Error("api-rate-limit-buffer must be a positive integer.");
+  }
 }
 
 function assertSafeOutputName(name) {
-  if (!name || name.includes("/") || name.includes("\\") || name === "." || name === "..") {
-    throw new Error(`Invalid GitStats config block name "${name}". Use a filename-safe block name without slashes.`);
+  if (!name || name.startsWith(".") || !/^[A-Za-z0-9._-]+$/.test(name)) {
+    throw new Error(`Invalid GitStats config block name "${name}". Use only letters, numbers, dots, underscores, and hyphens. Names cannot start with a dot.`);
   }
 }
 
@@ -902,20 +1257,6 @@ function readmeDisplayBlocks(markdown) {
   if (!markers.length) {
     throw new Error(`README GitStats display block was not found. Add two ${README_DISPLAY_MARKER} markers where the generated cards should appear.`);
   }
-  if (markers.length === 1) {
-    const marker = markers[0];
-    return [{
-      name: marker.name,
-      key: marker.key,
-      start: marker.start,
-      openEnd: marker.end,
-      openHasLineBreak: marker.hasLineBreak,
-      end: marker.end,
-      closeStart: marker.end,
-      closeMarker: marker.line,
-      single: true,
-    }];
-  }
   if (markers.length % 2 !== 0) {
     throw new Error(`README GitStats display block needs a closing display marker.`);
   }
@@ -951,8 +1292,7 @@ function replaceReadmeDisplay(markdown, cards) {
     const selectedCards = cardsForDisplayBlock(block, cards);
     const displayHtml = renderDisplayHtml(selectedCards).replaceAll("\n", eol);
     const afterOpen = block.openHasLineBreak ? "" : eol;
-    const closeMarker = block.single ? `${block.closeMarker}${eol}` : "";
-    updated = `${updated.slice(0, block.openEnd)}${afterOpen}${displayHtml}${eol}${closeMarker}${updated.slice(block.closeStart)}`;
+    updated = `${updated.slice(0, block.openEnd)}${afterOpen}${displayHtml}${eol}${updated.slice(block.closeStart)}`;
   }
 
   return updated;
@@ -985,13 +1325,40 @@ async function gitStatusFor(paths) {
   return stdout.trim();
 }
 
-async function commitGeneratedFiles(paths, shouldCommit) {
+async function currentBranchName() {
+  const { stdout } = await git(["rev-parse", "--abbrev-ref", "HEAD"]);
+  const branch = stdout.trim();
+  if (branch && branch !== "HEAD") return branch;
+
+  if (process.env.GITHUB_REF?.startsWith("refs/heads/")) {
+    return process.env.GITHUB_REF.slice("refs/heads/".length);
+  }
+  return process.env.GITHUB_REF_NAME || null;
+}
+
+async function assertRemoteHasNotMoved() {
+  const branch = await currentBranchName();
+  if (!branch) return;
+
+  await git(["fetch", "origin", `+refs/heads/${branch}:refs/remotes/origin/${branch}`]);
+  const local = (await git(["rev-parse", "HEAD"])).stdout.trim();
+  const remote = (await git(["rev-parse", `refs/remotes/origin/${branch}`])).stdout.trim();
+
+  if (local !== remote) {
+    throw new Error(
+      `Remote branch origin/${branch} moved while GitStats was running. Rerun the workflow so generated cards are based on the latest README.`,
+    );
+  }
+}
+
+export async function commitGeneratedFiles(paths, shouldCommit) {
   if (!shouldCommit || !paths.length) return;
   if (!(await gitStatusFor(paths))) {
     console.log("No generated SVG changes to commit.");
     return;
   }
 
+  await assertRemoteHasNotMoved();
   await git(["config", "user.name", GIT_AUTHOR_NAME]);
   await git(["config", "user.email", GIT_AUTHOR_EMAIL]);
   await git(["add", "--", ...paths]);
@@ -1006,12 +1373,110 @@ async function commitGeneratedFiles(paths, shouldCommit) {
   await git(["push"]);
 }
 
-async function writeLanguageSvg(options) {
-  const { languages, metric, repos, total } = await generateLanguagesFromGithub(options);
-  const outputDir = dirname(options.output);
-  if (outputDir !== ".") await mkdir(outputDir, { recursive: true });
-  await writeFile(options.output, renderSvg(languages, total, { ...options, metric }), "utf8");
-  console.log(`Generated ${options.output} from ${repos.length} repositories using ${metric}.`);
+export function repositoryFilterKey(options) {
+  return JSON.stringify({
+    username: String(options.username).toLowerCase(),
+    affiliation: options.affiliation,
+    visibility: options.visibility,
+    includeForks: options.includeForks,
+    includeArchived: options.includeArchived,
+    includeProfileRepo: options.includeProfileRepo,
+  });
+}
+
+export function buildCardPlans(envOptions, readmeConfigs) {
+  const usedOutputPaths = new Set();
+  return readmeConfigs.map((entry) => {
+    const options = mergeConfig(envOptions, entry.config);
+    options.output = outputPathForConfig(entry, options, usedOutputPaths);
+    options.name = entry.name || options.output;
+    validateOptions(options);
+    return {
+      key: entry.key,
+      name: entry.name,
+      output: options.output,
+      options,
+      filterKey: repositoryFilterKey(options),
+    };
+  });
+}
+
+async function reposForPlan(client, plan, repoCache) {
+  if (!repoCache.has(plan.filterKey)) {
+    const repos = await listRepos(client, plan.options);
+    repoCache.set(plan.filterKey, repos);
+  }
+  return repoCache.get(plan.filterKey);
+}
+
+async function totalsForPlan(client, plan, repos, totalsCache) {
+  const metric = metricForTimeframe(plan.options.timeframe);
+  const totalsKey = metric === METRIC_BYTES
+    ? `${plan.filterKey}|${METRIC_BYTES}`
+    : `${plan.filterKey}|${METRIC_CHANGES}|${plan.options.timeframe}`;
+
+  if (!totalsCache.has(totalsKey)) {
+    const totals = await collectLanguageTotals(client, plan.options, repos, {
+      card: plan.name || plan.output,
+      timeframe: plan.options.timeframe,
+    });
+    totalsCache.set(totalsKey, { metric, totals });
+  }
+
+  return totalsCache.get(totalsKey);
+}
+
+export async function renderPlannedCards(plans, options = {}) {
+  const client = options.client || new GitHubClient(plans[0]?.options || options);
+  if (!options.client) await client.preflight();
+
+  const repoCache = new Map();
+  const totalsCache = new Map();
+  const renderedCards = [];
+
+  for (const plan of plans) {
+    const repos = await reposForPlan(client, plan, repoCache);
+    const { metric, totals } = await totalsForPlan(client, plan, repos, totalsCache);
+    const languages = filterAndRankTotals(totals, plan.options);
+    const total = languages.reduce((sum, language) => sum + language.value, 0);
+
+    if (!total) {
+      throw new Error("No language data found. Check token access, timeframe, repository activity, and hidden language filters.");
+    }
+
+    renderedCards.push({
+      ...plan,
+      metric,
+      repos,
+      total,
+      languages,
+      svg: renderSvg(languages, total, { ...plan.options, metric }),
+    });
+    console.log(`Prepared ${plan.output} from ${repos.length} repositories using ${metric}.`);
+  }
+
+  console.log(`GitStats used ${client.requestCount} GitHub API requests.`);
+  if (client.lastRateLimit && Number.isFinite(client.lastRateLimit.remaining)) {
+    console.log(`GitHub API remaining: ${client.lastRateLimit.remaining}; reset: ${formatResetTime(client.lastRateLimit.reset)}.`);
+  }
+
+  return renderedCards;
+}
+
+export async function writeRenderedCards(readmePath, readmeMarkdown, renderedCards) {
+  for (const card of renderedCards) {
+    const outputDir = dirname(card.output);
+    if (outputDir !== ".") await mkdir(outputDir, { recursive: true });
+    await writeFile(card.output, card.svg, "utf8");
+    console.log(`Generated ${card.output} from ${card.repos.length} repositories using ${card.metric}.`);
+  }
+
+  const updatedReadme = await updateReadmeDisplay(readmePath, readmeMarkdown, renderedCards);
+  const generatedFiles = renderedCards.map((card) => card.output);
+  return {
+    generatedFiles,
+    commitPaths: updatedReadme ? [...generatedFiles, updatedReadme] : generatedFiles,
+  };
 }
 
 export async function main(env = process.env) {
@@ -1026,21 +1491,14 @@ export async function main(env = process.env) {
   const displayBlocks = readmeDisplayBlocks(readmeMarkdown);
   validateDisplayBlockReferences(displayBlocks, readmeConfigs);
 
-  const usedOutputPaths = new Set();
-  const generatedFiles = [];
-  const generatedCards = [];
+  const plans = buildCardPlans(envOptions, readmeConfigs);
+  const renderedCards = await renderPlannedCards(plans);
 
-  for (const entry of readmeConfigs) {
-    const options = mergeConfig(envOptions, entry.config);
-    options.output = outputPathForConfig(entry, options, usedOutputPaths);
-    validateOptions(options);
-    await writeLanguageSvg(options);
-    generatedFiles.push(options.output);
-    generatedCards.push({ key: entry.key, name: entry.name, output: options.output, options });
+  if (envOptions.commit) {
+    await assertRemoteHasNotMoved();
   }
 
-  const updatedReadme = await updateReadmeDisplay(envOptions.readmeConfigPath, readmeMarkdown, generatedCards);
-  const commitPaths = updatedReadme ? [...generatedFiles, updatedReadme] : generatedFiles;
+  const { generatedFiles, commitPaths } = await writeRenderedCards(envOptions.readmeConfigPath, readmeMarkdown, renderedCards);
   await writeGeneratedFilesOutput(generatedFiles, env);
   await commitGeneratedFiles(commitPaths, envOptions.commit);
 }

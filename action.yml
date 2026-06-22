@@ -74,6 +74,18 @@ inputs:
     description: README path containing GitStats config blocks.
     required: false
     default: README.md
+  api-request-timeout-ms:
+    description: Maximum time to wait for each GitHub API request before failing or retrying.
+    required: false
+    default: "15000"
+  api-max-retry-seconds:
+    description: Maximum total time to spend retrying transient GitHub API failures.
+    required: false
+    default: "60"
+  api-rate-limit-buffer:
+    description: Minimum GitHub API requests to leave unused when estimating recent card commit-detail work.
+    required: false
+    default: "50"
 
 outputs:
   generated-files:
@@ -104,4 +116,7 @@ runs:
         GITSTATS_SHOW_VALUES: ${{ inputs.show-values }}
         GITSTATS_USER_AGENT: ${{ inputs.user-agent }}
         GITSTATS_README_CONFIG: ${{ inputs.readme-config }}
+        GITSTATS_API_REQUEST_TIMEOUT_MS: ${{ inputs.api-request-timeout-ms }}
+        GITSTATS_API_MAX_RETRY_SECONDS: ${{ inputs.api-max-retry-seconds }}
+        GITSTATS_API_RATE_LIMIT_BUFFER: ${{ inputs.api-rate-limit-buffer }}
       run: node "$GITHUB_ACTION_PATH/src/generate-languages.mjs"

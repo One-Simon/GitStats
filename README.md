@@ -13,9 +13,9 @@ I didn´t like the functionality, nor the flexibility of existing projects. Hope
 
 ## What it is
 
-- README-driven config | `gitstats:config`blocks allow easy configurability.
+- README-driven config | `gitstats:config` blocks allow easy configurability.
 - Managed display | Paired `gitstats:display` markers auto generate Cards.
-- Flexible timeframe | Use `all-time` language bytes or a recent weeks.
+- Flexible timeframe | Use `all-time` language bytes or recent weeks.
 - Two styles | `normal` extended bar & list. `compact` labeled bar.
 - Language cleanup | Hide languages, group entries into `Other`, and fully configure visibility.
 
@@ -60,9 +60,14 @@ on:
     paths-ignore:
       - "profile/*.svg"
 
+concurrency:
+  group: gitstats-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   languages:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: write
     steps:
@@ -178,7 +183,7 @@ For fine-grained Personal Access Tokens:
 <br>
 
 > [!IMPORTANT]
-> GitStats does not receive access to the Code inside your repositories, only to the Metadata. 
+> All-time cards use GitHub language byte metadata. Recent cards also ask GitHub for commit file paths and change counts, which is why fine-grained tokens need `Contents: read`. GitStats does not write repository contents or include private repository/source names in the generated SVG.
 
 
 <br>
@@ -222,7 +227,7 @@ These are the settings you will most likely change first.
   <tr>
     <td><code>timeframe</code></td>
     <td><code>all-time</code></td>
-    <td><code>all-time</code> uses GitHub language bytes. A number, such as <code>8</code>, uses recent commit changes from that many weeks.</td>
+    <td><code>all-time</code> uses GitHub language bytes. A positive integer, such as <code>8</code>, uses recent commit changes from that many weeks.</td>
   </tr>
   <tr>
     <td><code>style</code></td>
@@ -287,7 +292,7 @@ These settings control which languages appear and how smaller entries are handle
   <tr>
     <td><code>max-languages</code></td>
     <td><code>10</code></td>
-    <td>Maximum number of displayed entries, including <code>Other</code>. Overflow languages are grouped into <code>Other</code>.</td>
+    <td>Positive integer maximum for displayed entries, including <code>Other</code>. Overflow languages are grouped into <code>Other</code>.</td>
   </tr>
 </table>
 
@@ -436,7 +441,7 @@ Workflow inputs provide global defaults and automation behavior.
 | `username` | Repository owner | GitHub username to generate stats for. |
 | `readme-config` | `README.md` | README path containing GitStats config blocks. |
 | `commit` | `true` | Commit and push changed generated SVGs and README display updates using the workflow checkout credentials. |
-| `max-languages` | `10` | Maximum number of displayed entries, including `Other`. |
+| `max-languages` | `10` | Positive integer maximum for displayed entries, including `Other`. |
 | `grouping` | `true` | Group the smallest languages into `Other` until the bucket is near 5%. |
 | `hide-languages` | `HTML,CSS,JSON` | Languages to exclude after loading all detected languages. |
 | `include-forks` | `false` | Include forked repositories. |
@@ -445,10 +450,13 @@ Workflow inputs provide global defaults and automation behavior.
 | `affiliation` | `owner` | Repository affiliation passed to GitHub. |
 | `visibility` | `all` | Repository visibility passed to GitHub. |
 | `title` | Automatic | Global card title fallback. README config blocks can override it per card. |
-| `timeframe` | `all-time` | `all-time` for language bytes, or a number of weeks for recent changes. |
+| `timeframe` | `all-time` | `all-time` for language bytes, or a positive integer number of weeks for recent changes. |
 | `style` | `normal` | Rendering style. |
 | `show-values` | `true` | Show byte or change totals in the normal renderer. |
 | `user-agent` | `GitStats-language-card` | User-Agent used for GitHub API requests. |
+| `api-request-timeout-ms` | `15000` | Maximum time to wait for each GitHub API request before failing or retrying. |
+| `api-max-retry-seconds` | `60` | Maximum total time to spend retrying safe transient GitHub API failures. |
+| `api-rate-limit-buffer` | `50` | Minimum GitHub API requests to leave unused when estimating recent card commit-detail work. |
 
 
 
@@ -471,6 +479,7 @@ gitstats:config -->
 
 Save Paths get auto generated based on naming & Card type. 
 Named blocks get saved on their name path. 
+Named block names may contain only letters, numbers, dots, underscores, and hyphens, and cannot start with a dot.
 <table align="center">
   <tr>
     <th>Config type</th>
@@ -534,12 +543,12 @@ For example, `<!-- gitstats:display most-used -->` displays the card generated b
 
 1. Reads repository metadata visible to the token.
 2. Filters repositories by owner, forks, archived status, and profile repository settings.
-3. For `timeframe: [weeks` - reads Number of recent changes
+3. For a numbered `timeframe`, reads recent commit file paths and change counts.
 4. For `timeframe: all-time` - reads GitHub language byte totals.
 5. Applies `hide-languages`, dynamic grouping, and `max-languages`.
-6. Renders one SVG for every README config block.
-7. Rewrites the marked README display section with matching image tags and spacing.
-8. Auto Commits changed generated SVGs and README display updates when.
+6. Renders every SVG in memory before writing any file.
+7. Rewrites the marked README display section with matching image tags and spacing only after all cards succeed.
+8. Auto commits changed generated SVGs and README display updates with `[skip ci]`, and refuses to push if the remote branch moved while the workflow was running.
 
 
 
@@ -562,9 +571,29 @@ GitHub caches images rendered inside READMEs. Check the SVG file directly in the
 
 <br>
 
+### The Workflow Fails With `Bad credentials`
+
+The stats token could be missing, blank, expired, revoked, or copied with the wrong value. GitStats trims the token and checks authentication before generating cards, so this error should happen before any SVG or README file is written. Rotate the secret, confirm the workflow uses the same secret name, and rerun the workflow.
+
+<br>
+
+### The Workflow Fails With a Permission Error
+
+Fine-grained tokens need `Metadata: read` for all-time cards and `Contents: read` for recent cards. If organization repositories are included, make sure SSO is authorized for the token. GitStats includes the endpoint type, card name, repository, request id, accepted permissions, and rate-limit state in the failure message when GitHub provides those headers.
+
+<br>
+
 ### The Workflow Fails With `API Rate Limit Exceeded`
 
-GitStats reads repository, language, and commit data through the GitHub API. Wait until the rate limit resets, then rerun the workflow from the Actions tab. Recent cards can use more requests than all-time cards because they inspect commits and changed files inside the selected timeframe.
+GitStats reads repository, language, and commit data through the GitHub API. Wait until the rate limit reset time shown in the error, then rerun the workflow from the Actions tab. Recent cards can use more requests than all-time cards because they inspect commits and changed files inside the selected timeframe.
+
+GitStats caches repeated work across matching cards and estimates the commit-detail budget before writing files. If the remaining quota is too low, it fails early instead of publishing partial stats. Lower the recent `timeframe`, exclude noisy repositories, or rerun after reset.
+
+<br>
+
+### The Workflow Fails Because the Remote Branch Moved
+
+GitStats fetches the checked-out branch before committing. If another push lands while the workflow is generating cards, GitStats fails clearly instead of pushing stale generated README content. Rerun the workflow after the branch is up to date.
 
 <br>
 
